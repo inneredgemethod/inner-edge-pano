@@ -47,6 +47,8 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 - `superpowers` akışı zorunlu: brainstorming → plan → küçük görevler → test → review.
 - Her UI değişikliğinden sonra `webapp-testing` ile 390px genişlikte ekran görüntüsü al ve Kürşad'a göster.
 - Yeni skill/plugin eklemeden önce `skill-security-auditor` ile tara ve Kürşad'a sor. Katman B/C skill'leri (`06_SKILLS_VE_PLUGINLER.md`) v0.1'de kurulmaz.
+- Skill'ler paket halinde değil **tek tek** kurulur (06 kuralı: en fazla 8-10 aktif skill). Kurulu olanlar ve kaynakları: `~/.claude/skills/KAYNAKLAR.md`. Şu an ~1.218 token/oturum.
+- Auditor **gürültülü**: 5 skill'in 3'üne yanlış `FAIL`/`WARN` verdi. Çıktısını kurulumu engellemek için değil, bakılacak satırı göstermek için kullan — işaretlenen satırı oku, sonra karar ver.
 
 ## Yapma
 - `.env.local`'i commit'leme. `service_role` anahtarını tarayıcıya gönderme.
