@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   Marka renkleri — 03_ornek_pano.html'den birebir alındı.
+   Koyu varsayılan (K3). data-theme="light" açık, "system" sisteme uyar.
+   --------------------------------------------------------------- */
+:root,
+:root[data-theme="dark"] {
+  --c-bg: #121a24;
+  --c-bg2: #182330;
+  --c-bg3: #1f2d3d;
+  --c-line: #243242;
+  --c-ink: #e9eef3;
+  --c-mute: #8fa0b3;
+  --c-teal: #3ee0cc;
+  --c-teal-ink: #0b1f1c;
+  --c-amber: #f2b84b;
+  --c-red: #f06b6b;
+  --c-green: #5fd68a;
+  --c-gate-ink: #ffd88a;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --c-bg: #f4f7f9;
+  --c-bg2: #ffffff;
+  --c-bg3: #eaf0f5;
+  --c-line: #d3dde6;
+  --c-ink: #14202b;
+  --c-mute: #5b7185;
+  --c-teal: #0d8b7e;
+  --c-teal-ink: #ffffff;
+  --c-amber: #a86c00;
+  --c-red: #c0392b;
+  --c-green: #1f7a47;
+  --c-gate-ink: #7a5200;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --c-bg: #f4f7f9;
+    --c-bg2: #ffffff;
+    --c-bg3: #eaf0f5;
+    --c-line: #d3dde6;
+    --c-ink: #14202b;
+    --c-mute: #5b7185;
+    --c-teal: #0d8b7e;
+    --c-teal-ink: #ffffff;
+    --c-amber: #a86c00;
+    --c-red: #c0392b;
+    --c-green: #1f7a47;
+    --c-gate-ink: #7a5200;
+    color-scheme: light;
+  }
+}
+
+/* Tailwind yardımcılarına bağla: bg-bg2, text-mute, border-line ... */
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-bg2: var(--c-bg2);
+  --color-bg3: var(--c-bg3);
+  --color-line: var(--c-line);
+  --color-ink: var(--c-ink);
+  --color-mute: var(--c-mute);
+  --color-teal: var(--c-teal);
+  --color-teal-ink: var(--c-teal-ink);
+  --color-amber: var(--c-amber);
+  --color-red: var(--c-red);
+  --color-green: var(--c-green);
+  --color-gate-ink: var(--c-gate-ink);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html {
+  background: var(--c-bg);
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-ink);
+  /* Alt sekme çubuğu içeriği örtmesin; iPhone'da home indicator payı dahil. */
+  padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
+}
+
+/* Klavyeyle gezinenler için görünür odak halkası. */
+:focus-visible {
+  outline: 2px solid var(--c-teal);
+  outline-offset: 2px;
+}
+
+/* Yatay kaydırılan faz şeridinin çubuğunu gizle, kaydırma çalışmaya devam etsin. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

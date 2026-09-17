@@ -17,6 +17,7 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 - **Vercel:** `vercel login` / `vercel logout` **çalıştırma** — CLI oturumu Kürşad'ın kişisel hesabında kalacak. Bu projedeki her vercel komutu `--token=$INNER_EDGE_VERCEL_TOKEN` ile çalışır (`link`, `env`, `deploy`, `whoami` dahil). Token `.env.local` içinde.
 - **`vercel env pull` YASAK** (çıplak hali): varsayılan olarak `.env.local`'i üzerine yazar ve token'ları siler. Her zaman ayrı dosyaya çek: `vercel env pull .env.vercel --token=$INNER_EDGE_VERCEL_TOKEN`.
 - **Supabase:** mevcut `claude.ai Supabase` OAuth bağlantısı (kişisel org) **elleçlenmez**. Bu proje için `inner-edge-supabase` adlı ayrı, `--project-ref` ile scope'lu MCP bağlantısı ve `SUPABASE_ACCESS_TOKEN` env değişkeni kullanılır.
+- **Supabase projesi:** adı `todolist` (Frankfurt, `eu-central-1`). İsim kozmetik, bağlantı `SUPABASE_PROJECT_REF` üzerinden kurulur. Kürşad bilerek böyle bıraktı — yeniden adlandırmayı teklif etme.
 - **Git kimliği:** bu repoda `git config user.email info@inneredgemethod.io` (global ayara dokunma, `--local` kullan).
 
 ## Teknik yığın (kararlaştırıldı)
