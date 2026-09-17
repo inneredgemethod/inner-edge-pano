@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inner Edge · Ekip Panosu</title>
+<style>
+  :root{--bg:#121a24;--bg2:#182330;--bg3:#1f2d3d;--line:#243242;--ink:#e9eef3;--mute:#8fa0b3;--teal:#3ee0cc;--teal-ink:#0b1f1c;--amber:#f2b84b;--red:#f06b6b;--green:#5fd68a;--r:8px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{padding:20px 20px 14px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between}
+  h1{margin:0;font-size:21px;font-weight:600}
+  h1 span{color:var(--teal)}
+  .sub{color:var(--mute);font-size:13px;margin-top:2px}
+  .me{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+  select,input[type=text],input[type=date],textarea{background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:7px 10px;font:inherit;font-size:14px}
+  select:focus,input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+  button{background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+  button:hover{border-color:var(--teal)}
+  button.primary{background:var(--teal);color:var(--teal-ink);border-color:var(--teal);font-weight:600}
+  main{max-width:1100px;margin:0 auto;padding:18px 20px 60px}
+  .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+  .stat b{display:block;font-size:22px;font-weight:600;line-height:1.15}
+  .stat small{color:var(--mute);font-size:12px}
+  .stat.now b{color:var(--teal)}.stat.bad b{color:var(--red)}
+  .gate{background:var(--bg2);border-left:3px solid var(--amber);border-radius:var(--r);padding:10px 14px;font-size:13px;color:#ffd88a;margin-bottom:16px}
+  .phases{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .ph{flex:1;min-width:150px;border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;cursor:pointer;background:var(--bg2)}
+  .ph.active{border-color:var(--teal)}
+  .ph.current{box-shadow:inset 0 0 0 1px var(--teal)}
+  .ph .n{font-weight:600;font-size:13px}.ph .d{color:var(--mute);font-size:12px}
+  .ph .bar{height:4px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden}.ph .bar i{display:block;height:100%;background:var(--teal)}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;background:transparent;color:var(--mute)}
+  .chip.on{border-color:var(--teal);color:var(--teal)}
+  .spacer{flex:1}
+  .week{margin:18px 0 6px;color:var(--mute);font-size:12px}
+  .task{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg2);margin-bottom:6px;cursor:pointer}
+  .task:hover{border-color:var(--teal)}
+  .task.Yapıldı{opacity:.5}.task.Yapılamadı{border-color:var(--red)}
+  .t{font-weight:500}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 12px;color:var(--mute);font-size:12px;margin-top:3px}
+  .owner{padding:1px 8px;border-radius:999px;font-size:11px;font-weight:600;color:var(--teal-ink)}
+  .o-Sarah{background:#c9a6ff}.o-Kürşad{background:var(--teal)}.o-Yunus{background:#7cc4ff}.o-Sibel{background:#ffb37c}.o-Emine{background:#f7e18b}.o-Ortak{background:#d9dee5}
+  .due.late{color:var(--red)}
+  .badge{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+  .s-Bekliyor{color:var(--mute)}.s-Yapılıyor{color:var(--amber);border-color:var(--amber)}.s-Yapıldı{color:var(--green);border-color:var(--green)}.s-Yapılamadı{color:var(--red);border-color:var(--red)}
+  .empty{color:var(--mute);padding:30px;text-align:center;border:1px dashed var(--line);border-radius:var(--r)}
+  .add{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin:18px 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg2)}
+  @media(max-width:760px){.add{grid-template-columns:1fr 1fr}.add input[type=text]{grid-column:1/-1}}
+  footer{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:26px;padding-top:14px;border-top:1px solid var(--line);color:var(--mute);font-size:12px}
+  .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--teal);color:var(--teal-ink);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+  .warn{background:#3a2a12;border:1px solid var(--amber);color:#ffd88a;padding:8px 12px;border-radius:var(--r);font-size:13px;margin-bottom:12px;display:none}
+  dialog{background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:680px;width:94vw;padding:0}
+  dialog::backdrop{background:rgba(0,0,0,.55)}
+  .dhead{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+  .dhead h2{margin:0 0 6px;font-size:18px;font-weight:600;line-height:1.3}
+  .dbody{padding:14px 20px 20px}
+  .sec{margin-bottom:14px}.sec h4{margin:0 0 4px;font-size:12px;color:var(--mute);font-weight:500}
+  .sec p{margin:0;font-size:14px}
+  .stbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .stbtns button.on{font-weight:600}
+  .stbtns .b-Yapılıyor.on{background:#3a2e12;border-color:var(--amber);color:var(--amber)}
+  .stbtns .b-Yapıldı.on{background:#12321f;border-color:var(--green);color:var(--green)}
+  .stbtns .b-Yapılamadı.on{background:#3a1616;border-color:var(--red);color:var(--red)}
+  .stbtns .b-Bekliyor.on{border-color:var(--mute)}
+  .row2{display:flex;gap:8px;flex-wrap:wrap}
+  .note{font-size:13px;margin:6px 0;padding:8px 10px;border-left:2px solid var(--line);background:var(--bg3);border-radius:0 6px 6px 0}
+  .note small{color:var(--mute)}
+  .noteform{display:flex;gap:6px;margin-top:8px}.noteform input{flex:1}
+  .dfoot{display:flex;gap:8px;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--line)}
+  dialog textarea{width:100%;min-height:220px;font-family:ui-monospace,monospace;font-size:12px}
+  @media(prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Inner Edge <span>Ekip Panosu</span></h1>
+    <div class="sub">ÖRNEK ARAYÜZ — mantık ve akış referansı. Görevlere tıkla → detay, durum, not.</div>
+  </div>
+  <div class="me">
+    Ben:
+    <select id="me"><option>Kürşad</option><option>Sarah</option><option>Yunus</option><option>Sibel</option><option>Emine</option></select>
+    <button id="refresh" title="Ekibin son değişikliklerini çek">Yenile</button>
+  </div>
+</header>
+
+<main>
+  <div class="warn" id="warn">Ortak kayıt şu an çalışmıyor — değişiklikler sadece bu pencerede kalır. Kapatmadan "Yedek al" ile kopyala.</div>
+  <div class="strip" id="strip"></div>
+  <div class="gate" id="gate"></div>
+  <div class="phases" id="phases"></div>
+
+  <div class="filters">
+    <button class="chip on" data-owner="">Herkes</button>
+    <button class="chip" data-owner="Kürşad">Kürşad</button>
+    <button class="chip" data-owner="Sarah">Sarah</button>
+    <button class="chip" data-owner="Yunus">Yunus</button>
+    <button class="chip" data-owner="3">Diğerleri</button>
+    <span class="spacer"></span>
+    <label style="font-size:13px;color:var(--mute)"><input type="checkbox" id="hideDone"> Yapılanları gizle</label>
+    <label style="font-size:13px;color:var(--mute)"><input type="checkbox" id="onlyOpen"> Sadece takılan / geciken</label>
+  </div>
+
+  <div id="list"></div>
+
+  <form class="add" id="addForm">
+    <input type="text" id="aTitle" placeholder="Yeni görev — kısa ve net yaz (ör. Sarah'a kurumsal paket taslağını gönder)" required>
+    <select id="aOwner"><option>Kürşad</option><option>Sarah</option><option>Yunus</option><option>Sibel</option><option>Emine</option><option>Ortak</option></select>
+    <select id="aPhase"></select>
+    <input type="date" id="aDue">
+    <button class="primary" type="submit">Ekle</button>
+  </form>
+
+  <footer>
+    <span id="saved">—</span>
+    <span class="spacer"></span>
+    <button id="export">Yedek al (JSON)</button>
+    <button id="import">Yedekten yükle</button>
+    <button id="reset">Listeyi sıfırla</button>
+  </footer>
+</main>
+
+<!-- Görev detayı -->
+<dialog id="detail">
+  <div class="dhead">
+    <h2 id="dTitle"></h2>
+    <div class="meta" id="dMeta"></div>
+  </div>
+  <div class="dbody">
+    <div class="sec"><h4>Ne yapılacak</h4><p id="dWhat"></p></div>
+    <div class="sec"><h4>Neden önemli</h4><p id="dWhy"></p></div>
+    <div class="sec"><h4>Bitti sayılır</h4><p id="dDone"></p></div>
+    <div class="sec"><h4>Durum</h4><div class="stbtns" id="dStatus"></div></div>
+    <div class="sec"><h4>Sorumlu ve tarih</h4>
+      <div class="row2">
+        <select id="dOwner"><option>Kürşad</option><option>Sarah</option><option>Yunus</option><option>Sibel</option><option>Emine</option><option>Ortak</option></select>
+        <input type="date" id="dDue">
+      </div>
+    </div>
+    <div class="sec"><h4>Notlar (kim, ne zaman, ne dedi)</h4>
+      <div id="dNotes"></div>
+      <div class="noteform"><input type="text" id="dNoteIn" placeholder="Ör: Sarah'a yazdım, Perşembe dönecek"><button id="dNoteAdd">Not ekle</button></div>
+    </div>
+  </div>
+  <div class="dfoot">
+    <button id="dDel" style="color:var(--red)">Görevi sil</button>
+    <button class="primary" id="dClose">Kapat</button>
+  </div>
+</dialog>
+
+<dialog id="dlg" style="padding:16px">
+  <p id="dlgTitle" style="margin-top:0"></p>
+  <textarea id="dlgText"></textarea>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button id="dlgClose">Kapat</button><button class="primary" id="dlgOk">Yükle</button></div>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Fazlar (kapı mantığı: tarih değil, şart) ---------- */
+const PHASES=[
+ {id:"A",n:"1 · Toparlanma",d:"14 – 27 Eylül",from:"2026-09-14",to:"2026-09-27",gate:"Üçlü toplantı yapıldı, içerik envanteri çıktı, herkesin haftalık zamanı belli."},
+ {id:"B",n:"2 · Sosyal medya ivmesi",d:"28 Eyl – 25 Ekim",from:"2026-09-28",to:"2026-10-25",gate:"4 hafta üst üste haftada 3 içerik çıktı, etkileşim yükseldi, sıcak listede en az 20 ilgili kişi var."},
+ {id:"C",n:"3 · Bootcamp duyuru & kayıt",d:"26 Eki – 22 Kasım",from:"2026-10-26",to:"2026-11-22",gate:"Ödemesini yapmış en az 7 kişi. 7 yoksa tarih ertelenir, kimse zorlamaz."},
+ {id:"D",n:"4 · Bootcamp (6 hafta)",d:"Aralık – Ocak (taslak)",from:"2026-11-30",to:"2027-01-15",gate:"Öğrencilerin %80'i bitirdi, 3-5 video yorum alındı."},
+ {id:"K",n:"Kurumsal hat",d:"Paralel",from:"2026-09-14",to:"2027-01-31",gate:"Bootcamp referansıyla ilk şirket görüşmesi."},
+];
+const THIRD=["Sibel","Emine","Ortak"];
+const STATUSES=["Bekliyor","Yapılıyor","Yapıldı","Yapılamadı"];
+
+/* ---------- Varsayılan görevler — gerçek ekip diliyle ---------- */
+function seed(){
+ const T=(phase,week,owner,due,title,what,why,done)=>({id:uid(),phase,week,owner,due,title,what,why,done,status:"Bekliyor",notes:[]});
+ return [
+ /* FAZ 1 — TOPARLANMA */
+ T("A","Bu hafta (14-20 Eyl)","Kürşad","2026-09-17","Sarah ve Yunus'la 45 dakikalık toplantı ayarla",
+  "Gruba 2-3 saat seçeneği at, Sarah'nın Atina saatine göre. Gündem: nerede kaldık, sosyal medyada ne yapacağız, kurumsal paket fikri, herkesin haftalık zamanı.",
+  "Herkes 'hazırım' dedi ama ortak bir plan yok. Toplantı olmadan kimse hareket etmiyor.",
+  "Toplantı yapıldı, 5 maddelik karar özeti gruba yazıldı."),
+ T("A","Bu hafta (14-20 Eyl)","Yunus","2026-09-20","Instagram ve YouTube'daki mevcut videoların listesini çıkar",
+  "Basit bir tablo: video adı, konu, tarih, izlenme, beğeni/kaydetme. En iyi 10 ve en kötü 10'u işaretle. Hangi konular tekrar tekrar çekilmiş, hangileri hiç yok — bir satırla yaz.",
+  "Kendin dedin: 'ne yapıldı, ne eksik bilmeden bir şey diyemiyorum.' Bu tablo olmadan içerik planı havada kalır.",
+  "Tablo gruba atıldı, en iyi 10 video ve eksik konular belli."),
+ T("A","Bu hafta (14-20 Eyl)","Sarah","2026-09-20","Yeni çektiğin videoları iki hesapta paylaşmaya başla",
+  "Geçen hafta çekmeye başladığın videoları bu hafta Instagram ve YouTube'a koy. Haftada en az 2 tane yeterli, mükemmel olması gerekmiyor.",
+  "Sosyal medyada ivme olmadan bootcamp'e kimse gelmeyecek. En çok etkileşim senin Instagram videolarından geliyor.",
+  "Bu hafta en az 2 video yayında."),
+ T("A","Bu hafta (14-20 Eyl)","Sarah","2026-09-20","Instagram ve YouTube'un son 3 ay rakamlarını gruba at",
+  "Instagram Insights ve YouTube Studio'dan ekran görüntüsü yeterli: takipçi, erişim, en çok izlenen 5 video, izleyici yaş/ülke.",
+  "Nisan'dan beri gerçek rakam yok. Reklam verecek miyiz, kime ulaşıyoruz — hepsi buna bağlı.",
+  "Ekran görüntüleri grupta."),
+ T("A","Bu hafta (14-20 Eyl)","Kürşad","2026-09-19","Kurumsal psikoloji paketi fikrini 1 sayfa yaz, Sarah'a gönder",
+  "Sarah'nın 'önce teşhis, sonra çözüm' fikrini kağıda dök: kimin için (şirket çalışanı? trader ekipleri?), teşhis nasıl olacak (anket + kısa görüşme), çözüm kaç seans, tahmini fiyat aralığı. Kısa ve okunur olsun.",
+  "Sarah 'detaylandırırsan bir şeyler söylerim' dedi. Top sende.",
+  "1 sayfa Sarah'ya gitti, Sarah geri dönüş yaptı."),
+ T("A","Bu hafta (14-20 Eyl)","Kürşad","2026-09-16","Haftalık rutinini gruba yaz — hangi gün, kaç saat",
+  "Banka ve ORDO618 dışında Inner Edge'e hangi akşamlar / hafta sonu kaç saat ayırabiliyorsun, gruba 3 satırla yaz.",
+  "Sarah 'rutinlerinizi buraya dökün' dedi. Kim ne zaman müsait bilinmeden toplantı bile ayarlanamıyor.",
+  "Grupta yazılı."),
+ T("A","Bu hafta (14-20 Eyl)","Yunus","2026-09-18","Ders programını ve haftalık ayırabileceğin saati gruba yaz",
+  "Okul başladı; hangi günler boşsun, haftada kaç saat gerçekçi olarak verebilirsin — abartma, az deyip fazla yapmak daha iyi.",
+  "Sana verilecek işlerin boyutu buna göre belirlenecek.",
+  "Grupta yazılı."),
+ T("A","Gelecek hafta (21-27 Eyl)","Sarah","2026-09-27","Emine Hanım'ın sesli journal denemesini toparla, gruba anlat",
+  "Emine Hanım uygulamayı denedikten sonra ne dedi, ne beğendi, ne takıldı — 5 satır.",
+  "İlk gerçek kullanıcı geri bildirimi. Yunus'un ne yapacağı buna bağlı.",
+  "Geri bildirim grupta."),
+ T("A","Gelecek hafta (21-27 Eyl)","Kürşad","2026-09-25","Ortaklık kurallarını toplantıda konuş, sonra gruba yaz",
+  "Toplantıda sözlü olarak geç: masrafları şu an Sarah karşılıyor → ilk gelir önce ona döner → sonra performansa göre paylaşırız → oranlar (bootcamp 60/30/10). Herkes 'tamam' derse gruba yazılı at, 'onaylıyorum' yazsınlar.",
+  "3 ay sonra 'şöyle mi demiştik' tartışması yaşamamak için. Şu an sadece senin kafanda net.",
+  "Grupta yazılı, Sarah ve Yunus 'onaylıyorum' yazdı."),
+ T("A","Gelecek hafta (21-27 Eyl)","Kürşad","2026-09-26","Mali müşavire sor: Yunanistan'daki ortağa ödeme nasıl yapılır",
+  "Soru net: 'Yurt dışında yaşayan ortağa şahıs şirketinden kâr payı ödersem stopaj var mı, nasıl belgelenir?' Cevabı gruba 3 satırla yaz.",
+  "İlk gelir geldiğinde bunu bilmiyorsak ödeme yapamayız.",
+  "Cevap alındı, grupta."),
+ T("A","Gelecek hafta (21-27 Eyl)","Sarah","2026-09-27","Kurumsal paket taslağına yorum yap",
+  "Kürşad'ın 1 sayfasını oku; teşhis kısmında hangi araçları kullanırsın (anket? NLP testi?), kaç seans mantıklı, ne eksik — sesli mesaj bile olur.",
+  "Paket senin uzmanlığın üstüne kuruluyor; sen onaylamadan kimseye gösterilemez.",
+  "Yorum geldi, Kürşad 2. taslağa geçti."),
+
+ /* FAZ 2 — SOSYAL MEDYA İVMESİ */
+ T("B","Her hafta","Sarah","2026-10-25","Haftada 3 kısa video: öğüt değil, somut vaka",
+  "'Sabret, meditasyon yap' tarzı değil; 'X yapan trader neden kaybediyor, ne yapsa kurtulur' gibi tek bir hatayı anlatan 45-60 saniyelik videolar. 4 haftalık liste: Yunus'un envanterindeki eksik konulardan seç.",
+  "Yunus haklı: aynı öğüt videolarının sonu geldi. Hedef kitle kendi hatasını görünce durur.",
+  "4 hafta boyunca her hafta 3 video yayında."),
+ T("B","Her hafta","Kürşad","2026-10-25","Haftada 1 piyasa/makro içeriği Sarah'nın hesabına ver",
+  "ORDO618'de zaten ürettiğin analizlerden haftada 1'ini Sarah'nın sayfasına uygun kısa metin veya görsel yap. 'Bu hafta piyasa şunu yaptı, psikolojik tuzak şu' bağlantısı kur.",
+  "Sarah'nın sayfasına teknik-makro ayağı geliyor, ORDO618'e çapraz trafik gidiyor.",
+  "4 içerik paylaşıldı."),
+ T("B","Her hafta","Yunus","2026-10-25","Sarah'nın videolarını Brolyz ve ordo618 hesaplarından yay, yorumlarla etkileşim al",
+  "Her yeni video çıkınca diğer hesaplardan paylaş, alakalı hesapların altına yorum yaz, DM'lere cevap ver. Günde 15 dakika yeter.",
+  "Sarah hiç reklam vermeden bu şekilde büyümüş. Bilinen tek işe yarayan yöntem.",
+  "4 hafta boyunca düzenli yapıldı."),
+ T("B","Her hafta","Yunus","2026-10-25","Her Pazar 5 satırlık rakam özeti at",
+  "Takipçi kaç oldu, bu hafta en iyi giden video hangisi, en kötü hangisi, DM'den kaç kişi ilgi gösterdi. Fazla süs yok, 5 satır.",
+  "Denediğimiz şeylerin sonucunu görmemiz lazım — senin sözün.",
+  "4 Pazar üst üste özet grupta."),
+ T("B","Ekim","Kürşad","2026-10-11","Sarah'la 1 canlı yayın yap: Makrodan Grafiğe",
+  "1 saat, YouTube canlı. Sen makro tarafı, Sarah psikoloji tarafı. Sonunda 'bootcamp geliyor, ilgilenen DM atsın' de — satış değil, nabız yoklama.",
+  "Bootcamp'in provası ve sıcak liste toplama aracı. Yayınlardan tanıyıp gelenler vardı.",
+  "Yayın yapıldı, en az 10 kişi DM ile ilgi gösterdi."),
+ T("B","Ekim","Sarah","2026-10-25","Sıcak liste tut: ilgilenen herkesin adı tek bir yerde",
+  "DM'den 'ne zaman başlıyor' diye soran, yayına katılan, eski öğrenci — hepsini basit bir listeye yaz (ad, kanal, ne dedi). Not uygulaması yeter.",
+  "Bootcamp duyurusu bu listeye yapılacak. Liste yoksa sıfırdan başlarız.",
+  "Listede en az 20 kişi."),
+ T("B","Ekim","Kürşad","2026-10-18","Eski öğrencilere ve 54 kişilik listeye samimi mesaj at",
+  "Reklam gibi değil: 'Merhaba, yeni dönem hazırlıyoruz, sen şu an trade'de en çok neyle uğraşıyorsun?' Cevap verenleri sıcak listeye ekle.",
+  "Bizi zaten tanıyan insanlar, en ucuz kayıt kaynağı.",
+  "Mesajlar gitti, cevap verenler listede."),
+ T("B","Ekim","Sarah","2026-10-25","Kurumsal için 2 profesyonel video çek",
+  "Şirket yöneticisine hitap eden ton: 'Ekibinizde karar altında bozulan performansı nasıl teşhis ederiz.' Takım elbise gerekmiyor ama trader jargonundan uzak.",
+  "Kurumsal görüşmelerde 'işte böyle anlatıyoruz' diye gösterilecek. Yeni oluşum için çektiklerinden çıkabilir.",
+  "2 video hazır, Kürşad'a gönderildi."),
+ T("B","Ekim","Kürşad","2026-10-25","Kurumsal paketi 3 tanıdığa göster, tepki al",
+  "Bankadan ya da çevreden 3 yönetici/İK kişisine 1 sayfayı gönder veya kahvede anlat. Sadece 'ilgini çeker mi, kaça alırsın' sor. Satış yok.",
+  "Paketi pazara sunmadan önce gerçek insan tepkisi. Yanlış yönde büyümeyi engeller.",
+  "3 kişiden geri bildirim gruba yazıldı."),
+ T("B","25 Ekim","Ortak","2026-10-25","Karar toplantısı: bootcamp'i duyuruyor muyuz?",
+  "Rakamlara bak: etkileşim arttı mı, sıcak listede kaç kişi var? 20+ varsa Faz 3'e geç. Yoksa 2 hafta daha sosyal medyaya devam, tarih ertelenir. Kimse alınmaz.",
+  "'Şartlar sağlanınca başlarız' demiştik. Şartlar sağlandı mı bu toplantıda karar verilir.",
+  "Karar gruba yazıldı: 'duyuruyoruz' veya 'x tarihine erteledik'."),
+
+ /* FAZ 3 — DUYURU & KAYIT */
+ T("C","1. hafta","Kürşad","2026-10-30","Bootcamp tanıtım metnini yaz: kim için, 6 haftada ne olacak, fiyat",
+  "Sade dille 1 sayfa. Fiyatı Sarah'la birlikte kesinleştir (19.900 TL mi, farklı mı). Taksit var mı yaz.",
+  "Yunus sayfayı bu metinle yapacak; sen Clarity Call'larda bunu anlatacaksın.",
+  "Metin Sarah onaylı, Yunus'a gitti."),
+ T("C","1. hafta","Yunus","2026-11-02","Kayıt ve ödeme sayfasını çalışır hale getir",
+  "Tanıtım metni + kayıt formu + ödeme (taksit dahil). Kendin 1 TL ile test et. Ödeme sonrası 'hoş geldin' mesajı otomatik gitsin.",
+  "Bir kişi 'ödemek istiyorum' dediğinde link hazır olmalı; 2 gün beklersek soğur.",
+  "Test ödemesi geçti, link grupta."),
+ T("C","2. hafta","Sarah","2026-11-08","Ücretsiz tanıtım dersi ver (canlı, 1 saat)",
+  "Bootcamp'in 1. haftasından gerçek bir parça: bir egzersiz yaptır, bir vaka anlat. Sonunda 'kayıt açık, 7-10 kişiyle sınırlı' de. Sıcak listeye özel davet, sonra herkese açık.",
+  "Ana kayıt anı. İnsanlar seni canlı görünce karar veriyor.",
+  "Ders yapıldı, kaydı alındı, katılımcı listesi Kürşad'da."),
+ T("C","2-3. hafta","Kürşad","2026-11-18","Sıcak listedeki herkesle 15 dakikalık birebir görüşme",
+  "Telefon veya Zoom. Soru: 'Şu an en büyük sorunun ne? 6 haftaya ayırabilir misin?' Uygunsa ödeme linkini at, uygun değilse dürüstçe söyle.",
+  "Bu iş DM'de kapanmaz, sesle kapanır. Satış senin alanın, Sarah'nın enerjisi derse kalsın.",
+  "Listedeki herkesle görüşüldü, kayıt sayısı grupta."),
+ T("C","2. hafta","Sarah","2026-11-08","Sibel Hoca'yla tarihleri ve ücreti teyit et",
+  "Bootcamp 6 haftasında 3 seans (2 haftada 1). Hangi günler, seans başı ücret, ödeme ders sonrası — yazılı teyit al.",
+  "Program duyurulduktan sonra 'o gün olmaz' çıkmasın.",
+  "Tarihler grupta, Sibel Hoca onayladı."),
+ T("C","3. hafta","Yunus","2026-11-20","Öğrenci WhatsApp grubu, Zoom linkleri ve basit ödev takibi hazır olsun",
+  "Kayıt olan herkesi gruba al, 6 haftalık Zoom linklerini sabitle, kim ödev yaptı kim yapmadı tutacak basit bir tablo aç. Uygulama şart değil.",
+  "1. gün karmaşa olmasın. Basit ama çalışan.",
+  "Grup açık, linkler sabit, tablo hazır."),
+ T("C","22 Kasım","Kürşad","2026-11-22","7 kişi kuralı: sayıya bak, başla veya ertele",
+  "Ödemesini yapmış 7+ kişi varsa Sarah'la başlangıç tarihini ilan et. 7'nin altındaysa kayıt olanlara 'x tarihine erteledik' de, parayı tut veya iade et — onlar seçsin.",
+  "Az kişiyle başlamak Sarah'yı yorar, kalite düşer, referans olmaz. Bu kuralı önceden koyduk.",
+  "Karar ve tarih gruba yazıldı."),
+
+ /* FAZ 4 — BOOTCAMP */
+ T("D","6 hafta","Sarah","2027-01-15","Haftada 2 canlı ders",
+  "Haftalık plan önceden grupta olsun. Kayıtlar Yunus'a gitsin.",
+  "Ürünün kendisi.",
+  "12 ders tamamlandı."),
+ T("D","6 hafta","Kürşad","2027-01-15","Her hafta 30 dakika piyasa sohbeti",
+  "O haftanın piyasasını öğrencilerle konuş: ne oldu, hangi tuzağa düşülür. ORDO618 bültenini kaynak göster.",
+  "Bootcamp'e makro ayağı, ORDO618'e yeni okur.",
+  "6 sohbet yapıldı."),
+ T("D","6 hafta","Sibel","2027-01-15","3 nörobilim/NLP seansı",
+  "2 haftada 1, tarihler Faz 3'te teyit edildi.",
+  "Programın 'sadece motivasyon değil, bilim de var' ayağı.",
+  "3 seans yapıldı, ücret ödendi."),
+ T("D","6 hafta","Yunus","2027-01-15","Katılım ve ödev takibi, teknik sorunlar",
+  "Her hafta: kim katıldı, kim ödev yaptı. Zoom/ödeme/link sorunu çıkarsa ilk sen bak.",
+  "Öğrenci düşmesin diye takip. %80 bitirme hedefi bununla tutulur.",
+  "Haftalık takip tablosu 6 hafta dolu."),
+ T("D","Son hafta","Sarah","2027-01-15","3-5 öğrenciden kısa video yorum al",
+  "Son derste sor: 'Bir dakika kameraya anlatır mısın?' Telefon kaydı yeter.",
+  "Bir sonraki dönemin ve kurumsal görüşmelerin en güçlü kanıtı.",
+  "En az 3 video Kürşad'da."),
+ T("D","Son hafta","Kürşad","2027-01-15","Bitiş toplantısı: para nerede, sıradaki ne",
+  "Toplam gelir, Sarah'nın masrafı kapandı mı, artan varsa nasıl paylaşılır, 2. dönem ne zaman. Rakamlarla, gruba yazılı.",
+  "Ortaklık kurallarının ilk gerçek uygulaması. Şeffaf olursa devam eder.",
+  "Özet gruba yazıldı, herkes gördü."),
+
+ /* KURUMSAL HAT */
+ T("K","Ekim","Sarah","2026-10-31","Şirket çalışanı için kısa teşhis anketi taslağı",
+  "10-15 soru: baskı altında karar, hata sonrası tepki, uyku/stres. Sonucunda 3 profil çıksın. Google Form yeter.",
+  "Kurumsal paketin 'önce teşhis' kısmı bu. Anket olmadan paket satılmaz.",
+  "Anket taslağı Kürşad'da."),
+ T("K","Kasım","Kürşad","2026-11-30","İlk 3 ciddi kurumsal görüşme",
+  "3 tanıdıktan gelen tepkiye göre paketi düzelt, sonra 3 şirket/prop firm ile gerçek görüşme ayarla. Bootcamp başladıysa 'şu an 8 kişilik dönem yürüyor' de.",
+  "Bootcamp referansıyla daha büyük işlere kapı aralamak — asıl para burada.",
+  "3 görüşme yapıldı, sonuçlar grupta."),
+ T("K","Kasım","Sarah","2026-11-30","Atina/yurt dışı tanıtım dosyasını güncelle",
+  "Mevcut sunuma: Kürşad'ın yazdığı paket sayfası, 2 profesyonel video linki, randevu linki, ilk öğrenci yorumları. 10 sayfayı geçmesin.",
+  "Yurt dışı görüşmelerinde elde tutulacak tek dosya.",
+  "Güncel dosya grupta."),
+ ];
+}
+function uid(){return Math.random().toString(36).slice(2,9)}
+
+/* ---------- Depolama ---------- */
+const KEY="ie_ekip_panosu_v01b";
+let state={version:2,updatedAt:null,tasks:[]};
+let storageOK=false,activePhase="",activeOwner="",openId=null;
+const $=s=>document.querySelector(s);
+
+/* ÖRNEK SÜRÜM: kayıt yok, sayfa yenilenince liste sıfırlanır. Gerçek uygulamada Supabase'e yazılacak. */
+async function initDb(){state.tasks=seed();storageOK=true;render();}
+async function load(){render();if(openId)fillDetail();}
+async function save(toastIt=true){state.updatedAt=new Date().toISOString();
+ $("#saved").textContent="Son değişiklik: "+fmtTime(state.updatedAt)+" · örnek sürüm, kayıt tutmuyor";
+ if(toastIt)toast("Değişti (örnek sürüm, kalıcı değil)");render();if(openId)fillDetail();}
+
+/* ---------- Yardımcılar ---------- */
+const today=()=>new Date();
+const fmtDate=s=>s?new Date(s+"T00:00:00").toLocaleDateString("tr-TR",{day:"2-digit",month:"short"}):"";
+const fmtTime=s=>new Date(s).toLocaleString("tr-TR",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+const isLate=t=>t.status!=="Yapıldı"&&t.due&&new Date(t.due+"T23:59:59")<today();
+const currentPhase=()=>{const n=today().toISOString().slice(0,10);return(PHASES.find(p=>p.id!=="K"&&n>=p.from&&n<=p.to)||{}).id};
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1400)}
+const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- Liste ---------- */
+function render(){
+ const ts=state.tasks,me=$("#me").value;
+ const done=ts.filter(t=>t.status==="Yapıldı").length,stuck=ts.filter(t=>t.status==="Yapılamadı").length,late=ts.filter(isLate).length;
+ const mine=ts.filter(t=>t.owner===me&&t.status!=="Yapıldı").length;
+ const cur=PHASES.find(p=>p.id===currentPhase());
+ $("#strip").innerHTML=`
+  <div class="stat now"><b>${cur?cur.n:"—"}</b><small>${cur?cur.d:""} · bugün ${today().toLocaleDateString("tr-TR",{day:"2-digit",month:"long"})}</small></div>
+  <div class="stat"><b>${done} / ${ts.length}</b><small>görev yapıldı</small></div>
+  <div class="stat"><b>${mine}</b><small>${esc(me)} — senin açık görevin</small></div>
+  <div class="stat ${late||stuck?'bad':''}"><b>${late} / ${stuck}</b><small>geciken / yapılamadı</small></div>`;
+ const g=PHASES.find(p=>p.id===(activePhase||currentPhase()));
+ $("#gate").innerHTML=g?`<b>${esc(g.n)} — bir sonraki aşamaya geçme şartı:</b> ${esc(g.gate)}`:"";
+ $("#phases").innerHTML=PHASES.map(p=>{const pt=ts.filter(t=>t.phase===p.id),pd=pt.filter(t=>t.status==="Yapıldı").length,pct=pt.length?Math.round(pd/pt.length*100):0;
+  return`<div class="ph ${activePhase===p.id?'active':''} ${currentPhase()===p.id?'current':''}" data-ph="${p.id}"><div class="n">${p.n}</div><div class="d">${p.d} · ${pd}/${pt.length}</div><div class="bar"><i style="width:${pct}%"></i></div></div>`}).join("");
+ document.querySelectorAll(".ph").forEach(el=>el.onclick=()=>{activePhase=activePhase===el.dataset.ph?"":el.dataset.ph;render();});
+ $("#aPhase").innerHTML=PHASES.map(p=>`<option value="${p.id}" ${p.id===(activePhase||currentPhase())?'selected':''}>${p.n}</option>`).join("");
+
+ let list=ts.filter(t=>!activePhase||t.phase===activePhase);
+ if(activeOwner==="3")list=list.filter(t=>THIRD.includes(t.owner));else if(activeOwner)list=list.filter(t=>t.owner===activeOwner);
+ if($("#hideDone").checked)list=list.filter(t=>t.status!=="Yapıldı");
+ if($("#onlyOpen").checked)list=list.filter(t=>t.status==="Yapılamadı"||isLate(t));
+ list.sort((a,b)=>(PHASES.findIndex(p=>p.id===a.phase)-PHASES.findIndex(p=>p.id===b.phase))||((a.due||"9")>(b.due||"9")?1:-1));
+ if(!list.length){$("#list").innerHTML=`<div class="empty">Bu filtrede görev yok. Aşağıdan ekleyebilirsin.</div>`;return;}
+ let html="",lastWeek="";
+ for(const t of list){
+  const wk=(PHASES.find(p=>p.id===t.phase)||{}).n+" — "+t.week;
+  if(wk!==lastWeek){html+=`<div class="week">${esc(wk)}</div>`;lastWeek=wk;}
+  html+=`<div class="task ${t.status}" data-id="${t.id}">
+   <div><div class="t">${esc(t.title)}</div>
+    <div class="meta"><span class="owner o-${esc(t.owner)}">${esc(t.owner)}</span>
+     ${t.due?`<span class="due ${isLate(t)?'late':''}">${isLate(t)?'gecikti · ':''}${fmtDate(t.due)}</span>`:''}
+     ${t.notes.length?`<span>${t.notes.length} not · son: ${esc(t.notes[t.notes.length-1].text).slice(0,60)}</span>`:''}</div></div>
+   <span class="badge s-${t.status}">${t.status}</span></div>`;
+ }
+ $("#list").innerHTML=html;
+}
+$("#list").addEventListener("click",e=>{const row=e.target.closest(".task");if(!row)return;openId=row.dataset.id;fillDetail();$("#detail").showModal();});
+
+/* ---------- Detay penceresi ---------- */
+function task(){return state.tasks.find(x=>x.id===openId)}
+function fillDetail(){
+ const t=task();if(!t)return;
+ $("#dTitle").textContent=t.title;
+ $("#dMeta").innerHTML=`<span class="owner o-${esc(t.owner)}">${esc(t.owner)}</span><span>${esc((PHASES.find(p=>p.id===t.phase)||{}).n)} · ${esc(t.week)}</span>`;
+ $("#dWhat").textContent=t.what||"—";$("#dWhy").textContent=t.why||"—";$("#dDone").textContent=t.done||"—";
+ $("#dStatus").innerHTML=STATUSES.map(s=>`<button class="b-${s} ${t.status===s?'on':''}" data-s="${s}">${s}</button>`).join("");
+ $("#dOwner").value=t.owner;$("#dDue").value=t.due||"";
+ $("#dNotes").innerHTML=t.notes.length?t.notes.slice().reverse().map(n=>`<div class="note">${esc(n.text)}<br><small>${esc(n.who)} · ${fmtTime(n.at)}</small></div>`).join(""):`<div class="note"><small>Henüz not yok. "Aradım, dönecek" / "yapamadım çünkü…" gibi kısa yaz.</small></div>`;
+}
+$("#dStatus").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;const t=task();t.status=b.dataset.s;
+ t.notes.push({who:$("#me").value,at:new Date().toISOString(),text:"Durum: "+t.status});await save();});
+$("#dOwner").onchange=async()=>{task().owner=$("#dOwner").value;await save();};
+$("#dDue").onchange=async()=>{task().due=$("#dDue").value;await save();};
+async function addNote(){const v=$("#dNoteIn").value.trim();if(!v)return;task().notes.push({who:$("#me").value,at:new Date().toISOString(),text:v});$("#dNoteIn").value="";await save();}
+$("#dNoteAdd").onclick=addNote;$("#dNoteIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addNote();}});
+$("#dDel").onclick=async()=>{if(confirm("Bu görev silinsin mi?")){state.tasks=state.tasks.filter(x=>x.id!==openId);openId=null;$("#detail").close();await save();}};
+$("#dClose").onclick=()=>{$("#detail").close();openId=null;};
+
+/* ---------- Ekle, filtre, yedek ---------- */
+$("#addForm").onsubmit=async e=>{e.preventDefault();
+ state.tasks.push({id:uid(),phase:$("#aPhase").value,week:"Sonradan eklendi",title:$("#aTitle").value.trim(),owner:$("#aOwner").value,due:$("#aDue").value,what:"",why:"",done:"",status:"Bekliyor",notes:[{who:$("#me").value,at:new Date().toISOString(),text:"Görev eklendi"}]});
+ $("#aTitle").value="";$("#aDue").value="";await save();};
+document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{document.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));c.classList.add("on");activeOwner=c.dataset.owner;render();});
+$("#hideDone").onchange=render;$("#onlyOpen").onchange=render;$("#me").onchange=render;
+$("#refresh").onclick=async()=>{await load();toast("Güncellendi");};
+const dlg=$("#dlg");
+$("#export").onclick=()=>{$("#dlgTitle").textContent="Kopyala, sakla. Yeni sohbette Claude'a yapıştırırsan listeyi güncelleyip geri verir.";$("#dlgText").value=JSON.stringify(state,null,2);$("#dlgOk").style.display="none";dlg.showModal();};
+$("#import").onclick=()=>{$("#dlgTitle").textContent="Yedek JSON'u yapıştır. Mevcut liste tamamen değişir.";$("#dlgText").value="";$("#dlgOk").style.display="";dlg.showModal();};
+$("#dlgOk").onclick=async()=>{try{const s=JSON.parse($("#dlgText").value);if(!Array.isArray(s.tasks))throw 0;state=s;dlg.close();await save();}catch{alert("Okunamadı. Yedek çıktısını olduğu gibi yapıştır.");}};
+$("#dlgClose").onclick=()=>dlg.close();
+$("#reset").onclick=async()=>{if(confirm("Tüm görevler ve notlar silinip 14 Eylül listesi yüklenecek. Emin misin?")){state.tasks=seed();await save();}};
+initDb();
+</script>
+</body>
+</html>
