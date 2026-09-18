@@ -14,6 +14,8 @@ import { serverClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
+  // Supabase link tükenmiş/kullanılmışsa doğrudan hata parametreleriyle döner.
+  const supabaseHata = searchParams.get("error_code") ?? searchParams.get("error");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const devam = searchParams.get("devam") ?? "/";
@@ -21,16 +23,27 @@ export async function GET(request: NextRequest) {
   const hedef = request.nextUrl.clone();
   hedef.search = "";
 
-  const supabase = await serverClient();
-
-  let hataVar = true;
-  if (token_hash && type) {
-    hataVar = !!(await supabase.auth.verifyOtp({ type, token_hash })).error;
-  } else if (code) {
-    hataVar = !!(await supabase.auth.exchangeCodeForSession(code)).error;
+  if (supabaseHata) {
+    hedef.pathname = "/giris";
+    hedef.searchParams.set("durum", supabaseHata.includes("expired") ? "linksuresi" : "linkgecersiz");
+    return NextResponse.redirect(hedef);
   }
 
-  if (hataVar) {
+  const supabase = await serverClient();
+
+  let hata: { message: string } | null = null;
+  if (token_hash && type) {
+    hata = (await supabase.auth.verifyOtp({ type, token_hash })).error;
+  } else if (code) {
+    hata = (await supabase.auth.exchangeCodeForSession(code)).error;
+  } else {
+    hata = { message: "Adreste ne code ne token_hash var" };
+  }
+
+  if (hata) {
+    // Sunucu loguna yaz: "link çalışmadı" mesajı kullanıcıya yeterli ama
+    // hata ayıklarken gerçek sebebi görmek şart.
+    console.error("[auth/confirm] giriş başarısız:", hata.message);
     hedef.pathname = "/giris";
     hedef.searchParams.set("durum", "linkgecersiz");
     return NextResponse.redirect(hedef);

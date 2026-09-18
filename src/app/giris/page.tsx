@@ -7,6 +7,7 @@ import { browserClient } from "@/lib/supabase/client";
 type Durum =
   | { tip: "bos" }
   | { tip: "linkgecersiz" }
+  | { tip: "linksuresi" }
   | { tip: "gonderiliyor" }
   | { tip: "gonderildi"; email: string }
   | { tip: "izinsiz" }
@@ -20,7 +21,9 @@ function Giris() {
       ? { tip: "izinsiz" }
       : params.get("durum") === "linkgecersiz"
         ? { tip: "linkgecersiz" }
-        : { tip: "bos" },
+        : params.get("durum") === "linksuresi"
+          ? { tip: "linksuresi" }
+          : { tip: "bos" },
   );
 
   async function gonder(e: React.FormEvent) {
@@ -134,6 +137,16 @@ function Giris() {
             >
               Bu pano ekibe özel. Bu adres izin listesinde değil. Ekipte olman gerekiyorsa
               Kürşad&apos;a söyle, seni eklesin.
+            </p>
+          )}
+
+          {durum.tip === "linksuresi" && (
+            <p
+              className="rounded-lg border p-3 text-sm"
+              style={{ borderColor: "var(--c-amber)", color: "var(--c-gate-ink)" }}
+            >
+              Bu linkin süresi dolmuş ya da daha önce kullanılmış. Her link bir kez
+              çalışır ve 1 saat geçerlidir. Aşağıdan yenisini iste.
             </p>
           )}
 

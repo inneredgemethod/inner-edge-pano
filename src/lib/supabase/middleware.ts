@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Giriş yapılmadan erişilebilen yollar. */
-const ACIK = ["/giris", "/auth/confirm", "/cikis"];
+const ACIK = ["/giris", "/cikis"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
