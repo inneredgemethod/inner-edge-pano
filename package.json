@@ -13,7 +13,10 @@
     "test:kalicilik": "node tests/kalicilik.mjs",
     "test:sunucu": "bash scripts/test-sunucu.sh",
     "dogrula": "node scripts/dogrula.mjs",
-    "test:toplu": "node tests/toplu.mjs"
+    "test:toplu": "node tests/toplu.mjs",
+    "yedek": "node scripts/yedek.mjs",
+    "test:ayristirici": "node tests/ayristirici.mjs",
+    "test:paketa": "node tests/paketa.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

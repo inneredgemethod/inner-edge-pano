@@ -70,6 +70,16 @@ export function TopBar() {
             </select>
           </label>
 
+          <Link
+            href="/ayarlar"
+            aria-label="Ayarlar"
+            title="Ayarlar"
+            className="rounded-lg border px-2.5 py-1 text-sm"
+            style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
+          >
+            ⚙
+          </Link>
+
           <form action="/cikis" method="post">
             <button
               type="submit"

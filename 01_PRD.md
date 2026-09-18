@@ -19,10 +19,11 @@ Telefondan açılan, giriş yapılan, üç kişinin ortak gördüğü görev pan
 | Ekran | İçerik |
 |---|---|
 | Giriş | Ekip şifresi + "Ben kimim" seçimi → içeri. Yanlış şifre: "Şifre yanlış" |
-| Genel bakış | Üstte 4 sayı (yapılan/toplam, benim açık görevim, geciken, takılan) + hangi fazdayız + faz geçiş şartı |
-| Görevler | Filtreler: faz sekmeleri, kişi, "yapılanları gizle", "sadece takılan/geciken". Liste: başlık, sorumlu rozeti, tarih, durum rozeti, son not özeti |
-| Görev detayı | Başlık, faz/hafta, "ne yapılacak / neden önemli / bitti sayılır", 4 durum düğmesi, sorumlu+tarih değiştirme, not akışı (kim/ne zaman), not ekleme, sil |
-| Görev ekle | Başlık, sorumlu, faz, tarih. Açıklamalar sonradan detaydan doldurulabilir |
+| Genel bakış | Üstte 4 sayı (yapılan/toplam, benim açık görevim, geciken, takılan) + hangi fazdayız + faz geçiş şartı + faz şeridi (doluluk çubuklu) |
+| Ayarlar | Yedek indirme, panoyu sıfırla (yedekleyip siler, `SİL` yazarak onay) |
+| Görevler | Filtreler: faz sekmeleri, kişi, "yapılanları gizle", "sadece takılan/geciken". Liste: başlık, sorumlu rozeti, tarih, durum rozeti, son not özeti. Geciken görev kırmızı çerçeveli. **Seçim modu:** toplu Sil / Sorumlu / Faz / Tarih |
+| Görev detayı | Başlık, faz/hafta, **düzenlenebilir** "ne yapılacak / neden önemli / bitti sayılır", 4 durum düğmesi, sorumlu+tarih değiştirme, not akışı (kim/ne zaman), not ekleme, sil |
+| Görev ekle | **İki mod.** *Tek görev:* başlık, sorumlu, faz, tarih + üç açıklama (isteğe bağlı). *Toplantı notu:* çok satırlı kutu, satır başına bir görev, `@Sarah` `#2` `!25.09` işaretleri, önizleme tablosu, tek tıkla toplu ekleme |
 
 Referans: `03_ornek_pano.html` (mantık doğru, görünüm modernleşecek).
 
@@ -34,7 +35,7 @@ Referans: `03_ornek_pano.html` (mantık doğru, görünüm modernleşecek).
 | K3 | Tema | Koyu (marka: lacivert #121a24 + teal #3ee0cc) / Açık / Sistem | **Koyu varsayılan + sistem seçeneği** |
 | K4 | Giriş yöntemi | Magic link (şifresiz) / Google ile giriş / Basit PIN | ~~Magic link~~ → **18 Eylül'de değişti: tek ekip şifresi.** Magic link kuruldu ve çalıştı, ama ücretsiz planda saatte 2 e-posta limiti ve "link istendiği tarayıcıda açılmalı" kısıtı ekip için uygun bulunmadı. Takas: "kim yaptı" artık doğrulanmış kimlik değil, beyan. Ayrıntı: `CLAUDE.md` › Giriş modeli |
 | K5 | Not ekleyince bildirim | Yok / E-posta / WhatsApp (ileride) | v0.1: **yok**; v0.2: günlük özet e-postası |
-| K6 | Kim silebilir | Herkes / Sadece ekleyen + Kürşad | **Ekleyen + Kürşad** — K4 değişince bu bir güvenlik sınırı olmaktan çıkıp kolaylık kuralına dönüştü (veritabanı kimin kim olduğunu bilmiyor) |
+| K6 | Kim silebilir | Herkes / Sadece ekleyen + Kürşad | ~~Ekleyen + Kürşad~~ → **18 Eylül'de kaldırıldı: herkes.** K4 tek şifreye geçince kural zaten veritabanında zorlanamaz hale gelmişti (kimlik beyan, DELETE'te karşılaştırılacak alan yok); arayüzde tutmak korunuyormuş yanılsaması veriyordu. Log kim yaptığını yazmaya devam ediyor. |
 
 ## 6. Kapsam dışı (v0.1'de YAPILMAYACAK)
 Dashboard/grafik, öğrenci paneli, dosya yükleme, yorum yanıtlama, takvim entegrasyonu, WhatsApp botu, çoklu proje ayrımı. Bunlar `02_FAZLAR.md` §Sonraki sürümler'de.

@@ -1,3 +1,41 @@
+-- ============================================================================
+-- DİKKAT — BU DOSYA ARTIK GEÇERLİ ŞEMA DEĞİL, İLK TASLAKTIR.
+--
+-- Çalışan şemanın kaynağı: supabase/migrations/ (sırayla uygulanır).
+-- Bu dosya tarihsel kayıt olarak duruyor; buradan kopyalayıp uygulama.
+--
+-- 18 Eylül 2026 itibarıyla uygulanmış migration'lar:
+--
+--   0001_init                 Tablolar, RLS, fazlar + kadro tohumu.
+--                             is_allowed() SECURITY DEFINER yapıldı — aşağıdaki
+--                             taslak hali "infinite recursion in policy" veriyor
+--                             ve HİÇ KİMSE hiçbir şey göremiyordu.
+--   0002_yetki_sikilastirma   is_allowed() private şemasına taşındı (REST ucu
+--                             kalktı); silme politikasındaki auth.jwt()
+--                             (select ...) ile sarmalandı (satır başına yeniden
+--                             değerlendiriliyordu).
+--   0003_politika_adi         "kendini görür" -> "ekip listesini görür".
+--                             Politika aslında ekibin tamamını döndürüyordu;
+--                             eski ad yanıltıcıydı.
+--   0004_degisiklik_logu      task_events'i TRIGGER yazıyor. Uygulamaya
+--                             bırakılsa "önce güncelle sonra log at" iki ayrı
+--                             istek olurdu; ikincisi düşerse kayıt kaybolur.
+--   0005_tek_sifreli_giris    Magic link kalktı. is_allowed() artık
+--                             auth.role()='authenticated'. Log aktörü JWT
+--                             yerine yeni `son_degistiren` sütunundan geliyor.
+--                             K6 silme politikası "oturum açmış olan siler"e
+--                             çevrildi: DELETE'te karşılaştırılacak doğrulanmış
+--                             kimlik yok, uygulanamayan politikayı uygulanıyor
+--                             gibi bırakmak korunduğunu sanmaktan kötü.
+--   0006_gorev_sirasi         `sirano` sütunu. 37 tohum görev tek INSERT ile
+--                             eklendiği için created_at'leri BİREBİR AYNI;
+--                             order by created_at hiçbir şey sıralamıyordu ve
+--                             görevler kendiliğinden yer değiştiriyordu.
+--
+-- `tasks` tablosunun güncel ek sütunları: son_degistiren, sirano.
+-- Faz 5'te K6 arayüzden de kaldırıldı: herkes her görevi düzenler/siler.
+-- ============================================================================
+
 -- 05 — Supabase şema taslağı · Inner Edge Ekip Panosu v0.1
 -- Claude Code: bunu migration olarak uygula (supabase/migrations/0001_init.sql). Gerekirse düzelt, ama tabloları ve alan anlamlarını koru.
 

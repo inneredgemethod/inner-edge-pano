@@ -12,6 +12,11 @@ const HEDEF = "45 dakikalık toplantı";
 const NOT = `TEST notu ${Date.now().toString(36)}`;
 const GOREV = `TEST kalicilik ${Date.now().toString(36)}`;
 
+// Baslamadan once temizle: bu paketler mutlak gorev sayisi kontrol ediyor.
+// Onceki bir kosu yarida kalirsa bıraktığı TEST gorevleri buradaki sayimi
+// bozuyor ve hata sanki burada varmis gibi gorunuyor.
+await db().temizle();
+
 const b = await chromium.launch();
 const oturum = async (kisi) => {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
@@ -93,8 +98,10 @@ ok("yeni görev yenilendikten sonra da var", await k.getByText(GOREV).isVisible(
 
 // 7) K6: Yunus, Kürşad'ın eklediğini silemiyor
 ok("Realtime: yeni görev Yunus'a düştü", await bekle(y, async () => (await y.getByText(GOREV).count()) > 0));
+// K6 Faz 5'te kaldırıldı: herkes her görevi silebilir.
 await ac(y, GOREV);
-ok("K6: Yunus başkasının görevini silemez", (await y.locator('dialog button:text-is("Sil")').count()) === 0);
+ok("Yunus, Kürşad'ın eklediğini silebiliyor (K6 kalktı)",
+   await y.locator('dialog button:text-is("Sil")').isVisible());
 await y.locator('dialog button:text-is("Kapat")').click();
 
 // 8) Silme kalıcı

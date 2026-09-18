@@ -85,9 +85,16 @@ Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim 
 Hepsi `PANO_URL` ile çalışır. **Dev sunucusunda koşma** — geliştirici rozeti tıklamaları yiyor.
 Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; temizlik satırını silme.
 
+## Toplu işlemler ve sıfırlama (Faz 5)
+- **Toplu güncelleme her satır için ayrı log üretir.** 10 görevin sorumlusunu değiştirmek 10 `task_events` satırı demek — bilerek böyle, "kim neyi değiştirdi" tek tek kalsın.
+- **Açıklama alanları (`what`/`why`/`done_when`) LOGLANMAZ.** Metin düzeltmesi her seferinde "X bir şey değiştirdi" satırı üretirse not akışı okunmaz olur.
+- **"Panoyu Sıfırla" silmeden ÖNCE yedeği tarayıcıya indirir.** Yedek başarısız olursa sıfırlama iptal edilir. `service_role` tarayıcıya verilmediği için yedek normal oturumla okunuyor; yerelden almak için `npm run yedek`.
+- **Sıfırlama fazları ve kadroyu SİLMEZ**, sadece görevleri (loglar cascade ile gider).
+- **Testler `TEST` içeren görevleri temizler** (`tests/oturum.mjs` › `temizle`). Filtre `*TEST*` — başta değil, içinde geçen de silinsin: ayrıştırıcı testinde bozuk bir işaret başa kayınca başlık `bozuk TEST ...` oluyor ve `TEST*` filtresi onu kaçırıyordu.
+
 ## Yapma
 - **Teşhis/deneme amacıyla gerçek görev verisini DEĞİŞTİRME.** Bir Realtime teşhis scripti bir görevin `week_label` alanını test değeriyle ezmiş ve geri almamıştı; görev panoda yanlış hafta grubuna düşmüştü. Denemen gerekiyorsa kendi eklediğin `TEST...` başlıklı bir görev üzerinde yap.
-- **Ekibe bir şey göstermeden önce `npm run dogrula`** — panoyu `04_gorevler_seed.json` ile karşılaştırır, sapma varsa listeler.
+- **Ekibe bir şey göstermeden önce `npm run dogrula`** — panonun SAĞLIK kontrolü: yetim log kaydı, boş zorunlu alan, geçersiz faz, `sirano` çakışması, kadro dışı log aktörü, kalmış `TEST` görevi, Supabase denetçisi. **Artık tohum dosyasıyla karşılaştırmıyor** — Faz 5'te "Panoyu Sıfırla" geldi, toplantıdan sonra gerçek görevler girilecek ve tohum karşılaştırması anlamsız kalacak.
 - `.env.local`'i commit'leme. `service_role` anahtarını tarayıcıya gönderme.
 - Kullanıcıya sormadan veritabanını sıfırlama veya tohum veriyi yeniden yükleme.
 - v0.1 kapsamı dışına çıkma (dashboard, öğrenci paneli, dosya yükleme → sonraki sürümler).

@@ -7,6 +7,11 @@ const BASE = process.env.PANO_URL ?? "http://localhost:3000";
 const ok = (n, c) => console.log(`${c ? "✓" : "✗ BASARISIZ"}  ${n}`);
 const TEST_GOREV = `TEST etkilesim ${Date.now().toString(36)}`;
 
+// Baslamadan once temizle: bu paketler mutlak gorev sayisi kontrol ediyor.
+// Onceki bir kosu yarida kalirsa bıraktığı TEST gorevleri buradaki sayimi
+// bozuyor ve hata sanki burada varmis gibi gorunuyor.
+await db().temizle();
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
@@ -98,21 +103,23 @@ for (let i = 0; i < 20; i++) {
 }
 ok("yeni görev listede", eklendi);
 
-// K6 — Kürşad her şeyi silebilir
+// Silme kuralı (Faz 5 A5): K6 kaldırıldı, herkes her görevi silebilir.
+// Veritabanında zaten zorlanamıyordu (kimlik beyan, DELETE'te karşılaştırılacak
+// alan yok); arayüzde tutmak korunuyormuş yanılsaması veriyordu.
 await acGorev("45 dakikalık toplantı");
-ok("K6: Kürşad tohum görevi silebilir", await p.locator('dialog button:text-is("Sil")').isVisible());
+ok("Kürşad tohum görevini silebiliyor", await p.locator('dialog button:text-is("Sil")').isVisible());
 await p.locator('dialog button:text-is("Kapat")').click();
 
-// K6 — Yunus'a geçince başkasının görevini silemez, KENDİ eklediğini silebilir
 await benSec("Yunus");
 await acGorev("45 dakikalık toplantı");
-ok("K6: Yunus tohum görevini silemez", (await p.locator('dialog button:text-is("Sil")').count()) === 0);
-ok("K6: gerekçe yazıyor", await p.locator("dialog").getByText(/yalnızca ekleyen veya Kürşad/).isVisible());
+ok("Yunus da silebiliyor (K6 kalktı)", await p.locator('dialog button:text-is("Sil")').isVisible());
+ok("eski K6 gerekçesi kalmadı",
+   (await p.locator("dialog").getByText(/yalnızca ekleyen veya Kürşad/).count()) === 0);
 await p.locator('dialog button:text-is("Kapat")').click();
 
 await p.getByText(TEST_GOREV).click();
 await p.waitForSelector("dialog[open]");
-ok("K6: Kürşad'ın eklediğini Yunus silemez", (await p.locator('dialog button:text-is("Sil")').count()) === 0);
+ok("Yunus, Kürşad'ın eklediğini de silebiliyor", await p.locator('dialog button:text-is("Sil")').isVisible());
 await p.locator('dialog button:text-is("Kapat")').click();
 
 const { gorev, log } = await db().temizle();

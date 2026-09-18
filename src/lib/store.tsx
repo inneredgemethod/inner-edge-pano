@@ -14,7 +14,18 @@ import {
 import { browserClient } from "./supabase/client";
 import { kisiYaz } from "./kisi";
 import type { Kadro } from "./supabase/queries";
-import { alanYaz, durumYaz, gorevEkle, gorevSil, notYaz, topluGuncelle, topluSil } from "./supabase/yaz";
+import {
+  alanYaz,
+  durumYaz,
+  gorevEkle,
+  gorevSil,
+  notYaz,
+  topluGuncelle,
+  topluEkle,
+  topluSil,
+  type Duzenlenebilir,
+  type YeniGorev,
+} from "./supabase/yaz";
 import type { Note, Phase, Status, Task } from "./types";
 
 export type Theme = "dark" | "light" | "system";
@@ -39,14 +50,17 @@ type Store = {
   hatayiKapat: () => void;
   setStatus: (id: string, status: Status) => void;
   addNote: (id: string, body: string) => void;
-  updateTask: (id: string, patch: Partial<Pick<Task, "owner" | "due">>) => void;
+  updateTask: (id: string, patch: Duzenlenebilir) => void;
   addTask: (
-    input: Omit<Task, "id" | "status" | "notes" | "what" | "why" | "done" | "createdBy">,
+    input: Omit<Task, "id" | "status" | "notes" | "createdBy" | "what" | "why" | "done"> &
+      Partial<Pick<Task, "what" | "why" | "done">>,
   ) => Promise<void>;
   removeTask: (id: string) => void;
   /** Toplu işlemler (A1). */
   topluDegistir: (ids: string[], patch: { owner?: string; phase?: string; due?: string }) => void;
   topluKaldir: (ids: string[]) => void;
+  /** Toplantı notundan çıkan görevleri tek seferde ekler (A4). */
+  topluGorevEkle: (girdiler: YeniGorev[]) => Promise<string | null>;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -195,7 +209,7 @@ export function StoreProvider({
   );
 
   const updateTask = useCallback(
-    (id: string, patch: Partial<Pick<Task, "owner" | "due">>) => {
+    (id: string, patch: Duzenlenebilir) => {
       void iyimser(
         (prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)),
         () => alanYaz(id, patch, me),
@@ -258,13 +272,23 @@ export function StoreProvider({
     [iyimser],
   );
 
+  const topluGorevEkle = useCallback<Store["topluGorevEkle"]>(
+    async (girdiler) => {
+      const h = await topluEkle(girdiler, me);
+      if (h) setHata(h);
+      else router.refresh();
+      return h;
+    },
+    [me, router],
+  );
+
   const value = useMemo<Store>(
     () => ({
       tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
-      setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir,
+      setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir, topluGorevEkle,
     }),
     [tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
-     setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir],
+     setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir, topluGorevEkle],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

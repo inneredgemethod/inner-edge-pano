@@ -36,6 +36,18 @@ Her faz: plan → Kürşad onayı → yap → Kürşad'a göster → commit. Bir
 - Yedek: JSON dışa aktarma düğmesi
 - Küçük hatalar
 
+## Faz 5 — Toplantı öncesi hazırlık (18 Eylül)
+**Paket A (yapıldı):**
+- Toplu seçim: checkbox, tümünü seç (filtreye saygılı), toplu Sil / Sorumlu / Faz / Tarih
+- Ayarlar sayfası: yedek indirme + "Panoyu Sıfırla" (yedekleyip siler, `SİL` yazarak onay)
+- Üç açıklama alanı (ne yapılacak / neden önemli / bitti sayılır) hem eklerken hem detayda düzenlenebilir
+- Toplantı notu → görevler: satır başına bir görev, `@Sarah` sorumlu, `#2`/`#C` faz, `!25.09` tarih, önizleme tablosu
+- K6 kaldırıldı: herkes her görevi düzenler/siler (log kim yaptığını yazmaya devam ediyor)
+- Geciken görev kırmızı çerçeve; faz kartında doluluk çubuğu
+
+**Paket B (sırada):** hafta/ay görünümü, tarihten otomatik gruplama, arama, JSON dışa/içe aktarma.
+**Paket C:** toplantı sonrasına — tekrarlayan görevler, şablonlar, faz yönetimi, kadro yönetimi.
+
 ---
 
 ## Sonraki sürümler (şimdi YAPILMAYACAK, sadece yön)

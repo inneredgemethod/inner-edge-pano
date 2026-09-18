@@ -6,6 +6,11 @@ envYukle();
 const BASE = process.env.PANO_URL ?? "http://localhost:3000";
 const ok = (n, c) => console.log(`${c ? "✓" : "✗ BASARISIZ"}  ${n}`);
 
+// Baslamadan once temizle: bu paketler mutlak gorev sayisi kontrol ediyor.
+// Onceki bir kosu yarida kalirsa bıraktığı TEST gorevleri buradaki sayimi
+// bozuyor ve hata sanki burada varmis gibi gorunuyor.
+await db().temizle();
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();

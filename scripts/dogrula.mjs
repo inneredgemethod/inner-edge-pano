@@ -1,12 +1,12 @@
 /**
- * Panodaki veriyi 04_gorevler_seed.json ile karşılaştırır.
+ * Panonun SAĞLIK kontrolü.
  *
- * Neden var: bir teşhis scripti gerçek bir görevin `week_label` alanını test
- * değeriyle değiştirmiş ve geri almamıştı; görev panoda yanlış hafta grubuna
- * düşmüştü. Ekran görüntüsüne dikkatli bakılmasa fark edilmeyecekti.
- * Ekibe bir şey göstermeden önce bunu çalıştır.
+ * Eskiden 04_gorevler_seed.json ile birebir karşılaştırıyordu. Faz 5'te
+ * "Panoyu Sıfırla" geldi ve toplantıda gerçek görevler girilecek — o andan
+ * sonra tohum karşılaştırması anlamsız. Artık veriyi kendi içinde tutarlılık
+ * açısından denetliyor.
  *
- *   node scripts/dogrula.mjs
+ *   npm run dogrula
  */
 import { readFileSync } from "node:fs";
 
@@ -17,44 +17,71 @@ for (const line of readFileSync(new URL("../.env.local", import.meta.url), "utf8
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const PAT = process.env.SUPABASE_ACCESS_TOKEN;
+const REF = process.env.SUPABASE_PROJECT_REF;
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 
-const seed = JSON.parse(readFileSync(new URL("../04_gorevler_seed.json", import.meta.url), "utf8")).tasks;
-const satirlar = await (
-  await fetch(
-    `${URL_}/rest/v1/tasks?select=title,owner,week_label,due_date,status,phase_id,what,why,done_when,sirano`,
-    { headers: H },
-  )
-).json();
-const db = new Map(satirlar.map((r) => [r.title, r]));
+const al = async (yol) => (await fetch(`${URL_}/rest/v1/${yol}`, { headers: H })).json();
 
-const ALANLAR = [
-  ["owner", "owner"], ["week", "week_label"], ["due", "due_date"],
-  ["status", "status"], ["phase", "phase_id"], ["what", "what"],
-  ["why", "why"], ["done", "done_when"],
-];
+const tasks = await al("tasks?select=id,title,owner,phase_id,status,sirano,due_date");
+const events = await al("task_events?select=id,task_id,kind,actor");
+const phases = await al("phases?select=id");
+const kadro = await al("allowed_users?select=display_name");
 
-const sapma = [];
-seed.forEach((t, i) => {
-  const d = db.get(t.title);
-  if (!d) return sapma.push(`EKSIK: ${t.title}`);
-  if (d.sirano !== i + 1) sapma.push(`SIRA: ${t.title.slice(0, 40)} -> ${d.sirano}, olmali ${i + 1}`);
-  for (const [tohumAlan, dbAlan] of ALANLAR) {
-    if ((t[tohumAlan] || null) !== (d[dbAlan] || null)) {
-      sapma.push(`${dbAlan}: ${t.title.slice(0, 34)} -> ${JSON.stringify(d[dbAlan])?.slice(0, 50)}`);
-    }
-  }
-});
+const sorun = [];
+const fazIdler = new Set(phases.map((p) => p.id));
+const gorevIdler = new Set(tasks.map((t) => t.id));
 
-const fazla = satirlar.filter((r) => !seed.some((t) => t.title === r.title));
-for (const f of fazla) sapma.push(`FAZLADAN: ${f.title}`);
+// 1) Yetim log: silinen bir göreve bağlı kayıt kalmış mı (cascade tutmuş mu)
+const yetim = events.filter((e) => !gorevIdler.has(e.task_id));
+if (yetim.length) sorun.push(`${yetim.length} yetim task_events kaydı (görevi silinmiş)`);
 
-const log = await (await fetch(`${URL_}/rest/v1/task_events?select=id`, { headers: H })).json();
+// 2) Boş zorunlu alanlar
+for (const t of tasks) {
+  if (!t.title?.trim()) sorun.push(`baslik bos: ${t.id}`);
+  if (!t.owner?.trim()) sorun.push(`sorumlu bos: ${t.title}`);
+  if (!fazIdler.has(t.phase_id)) sorun.push(`gecersiz faz "${t.phase_id}": ${t.title}`);
+}
 
-console.log(`gorev: ${satirlar.length}/${seed.length} · log kaydi: ${log.length}`);
-if (sapma.length) {
-  console.log(`\nTOHUMDAN ${sapma.length} SAPMA:`);
-  for (const s of sapma) console.log("  " + s);
+// 3) sirano: çakışma veya boşluk
+const siralar = tasks.map((t) => t.sirano).filter((n) => n != null);
+if (siralar.length !== tasks.length) {
+  sorun.push(`${tasks.length - siralar.length} gorevde sirano bos`);
+}
+const tekrar = siralar.filter((n, i) => siralar.indexOf(n) !== i);
+if (tekrar.length) sorun.push(`sirano cakismasi: ${[...new Set(tekrar)].join(", ")}`);
+
+// 4) Log aktörleri kadroda mı (Sistem hariç)
+const isimler = new Set([...kadro.map((k) => k.display_name), "Sistem"]);
+const yabanci = [...new Set(events.map((e) => e.actor))].filter((a) => !isimler.has(a));
+if (yabanci.length) sorun.push(`log'da kadro disi aktor: ${yabanci.join(", ")}`);
+
+// 5) Test kalıntısı
+const copluk = tasks.filter((t) => /^TEST/i.test(t.title ?? ""));
+if (copluk.length) sorun.push(`${copluk.length} TEST gorevi kalmis: ${copluk.map((t) => t.title).join(" | ")}`);
+
+// 6) Supabase denetçisi
+let advisor = "atlandi (SUPABASE_ACCESS_TOKEN yok)";
+if (PAT && REF) {
+  const d = await (
+    await fetch(`https://api.supabase.com/v1/projects/${REF}/advisors/security`, {
+      headers: { Authorization: `Bearer ${PAT}` },
+    })
+  ).json();
+  // auth_leaked_password_protection: ucretli plan gerektiriyor, modelimizde
+  // anlamsiz (sifreyi kullanici belirlemiyor). Bilerek gormezden geliniyor.
+  const ls = (d.lints ?? []).filter(
+    (l) => l.level !== "INFO" && l.name !== "auth_leaked_password_protection",
+  );
+  advisor = ls.length ? ls.map((l) => `[${l.level}] ${l.name}`).join("; ") : "temiz";
+  if (ls.length) sorun.push(`advisors: ${advisor}`);
+}
+
+console.log(`gorev: ${tasks.length} · log: ${events.length} · faz: ${phases.length} · kadro: ${kadro.length}`);
+console.log(`advisors(security): ${advisor}`);
+if (sorun.length) {
+  console.log(`\n${sorun.length} SORUN:`);
+  for (const s of sorun) console.log("  " + s);
   process.exit(1);
 }
-console.log("Pano tohum verisiyle birebir ayni.");
+console.log("Pano saglikli.");
