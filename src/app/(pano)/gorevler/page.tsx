@@ -10,7 +10,7 @@ import { useStore } from "@/lib/store";
 import { MEMBERS } from "@/lib/types";
 
 function Gorevler() {
-  const { tasks, today } = useStore();
+  const { tasks, phases, today } = useStore();
   const params = useSearchParams();
 
   const [phase, setPhase] = useState<string | null>(params.get("faz"));
@@ -19,7 +19,7 @@ function Gorevler() {
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
 
-  const now = currentPhase(today);
+  const now = currentPhase(phases, today);
 
   const visible = tasks.filter((t) => {
     if (phase && t.phase !== phase) return false;
@@ -41,7 +41,7 @@ function Gorevler() {
     <>
       <h1 className="mb-2 text-base font-semibold">Görevler</h1>
 
-      <PhaseStrip active={phase} onSelect={setPhase} currentId={now.id} />
+      <PhaseStrip active={phase} onSelect={setPhase} currentId={now?.id} />
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {chips.map((c) => {

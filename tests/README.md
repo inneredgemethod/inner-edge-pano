@@ -3,10 +3,23 @@
 Playwright ile, gerçek tarayıcıda, telefon genişliğinde (390px / iPhone 14 Pro).
 
 ```bash
-npm run build && PORT=3002 npm start      # ayrı bir terminalde
-PANO_URL=http://localhost:3002 npm run test:etkilesim
-PANO_URL=http://localhost:3002 npm run test:ekran
+npm run build
+lsof -ti tcp:3002 | xargs -r kill -9     # eski süreç kalmışsa
+PORT=3002 npm start &
+export PANO_URL=http://localhost:3002
+npm run test:giris && npm run test:etkilesim && npm run test:ekran
 ```
+
+**Dikkat:** `next dev` ve `next build` aynı `.next` klasörünü paylaşır; biri
+çalışırken diğerini koşturursan dev sunucusu 500 vermeye başlar. Ayrıca
+`pkill -f "next start"` süreci öldürmez (asıl süreç `next-server`); porta
+göre öldür.
+
+## `giris.mjs` neyi doğruluyor
+Girişsiz erişimin engellenmesi · izin listesi dışı e-postaya **link
+gönderilmemesi** · bozuk linkte anlaşılır mesaj · gerçek jetonla giriş ·
+verinin veritabanından gelmesi · çıkış. Gerçek e-posta göndermez: Supabase
+admin API'sinden `generate_link` ile jeton üretir (`tests/oturum.mjs`).
 
 **Neden dev sunucusunda değil:** `next dev` sayfaya bir geliştirici rozeti
 (`<nextjs-portal>`) basıyor, sol alt köşedeki tıklamaları yiyor ve alt sekme

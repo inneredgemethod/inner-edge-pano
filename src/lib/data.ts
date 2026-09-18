@@ -1,14 +1,4 @@
-import seed from "../../04_gorevler_seed.json";
-import type { Phase, Status, Task } from "./types";
-
-export const PHASES: Phase[] = seed.phases as Phase[];
-
-/** Tohum görevler. Faz 2'de yerini Supabase alacak; şekil aynı kalacak. */
-export const SEED_TASKS: Task[] = (seed.tasks as Task[]).map((t) => ({
-  ...t,
-  status: t.status as Status,
-  notes: t.notes ?? [],
-}));
+import type { Phase, Task } from "./types";
 
 /**
  * Ekibin ortak takvimi Türkiye/Yunanistan saati. Sunucu UTC'de çalıştığı için
@@ -44,12 +34,12 @@ export function isLate(t: Task, today: string): boolean {
 }
 
 /** Bugün hangi fazdayız — tarih aralığına giren ilk faz, yoksa ilki. */
-export function currentPhase(today: string): Phase {
-  return PHASES.find((p) => p.from <= today && today <= p.to) ?? PHASES[0];
+export function currentPhase(phases: Phase[], today: string): Phase | undefined {
+  return phases.find((p) => p.from <= today && today <= p.to) ?? phases[0];
 }
 
-export function phaseOf(id: string): Phase | undefined {
-  return PHASES.find((p) => p.id === id);
+export function phaseOf(phases: Phase[], id: string): Phase | undefined {
+  return phases.find((p) => p.id === id);
 }
 
 export type PhaseStat = { done: number; total: number; ratio: number };

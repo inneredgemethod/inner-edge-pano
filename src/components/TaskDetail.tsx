@@ -20,7 +20,7 @@ const ON_STYLE: Record<Status, { bg: string; fg: string }> = {
  * eski veride donup kalıyor.
  */
 export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose: () => void }) {
-  const { tasks, setStatus, addNote, updateTask, removeTask, canDelete } = useStore();
+  const { tasks, phases, setStatus, addNote, updateTask, removeTask, canDelete } = useStore();
   const task = tasks.find((t) => t.id === taskId) ?? null;
   const [draft, setDraft] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -38,7 +38,7 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
 
   if (!task) return <dialog ref={dialogRef} className="hidden" />;
 
-  const phase = phaseOf(task.phase);
+  const phase = phaseOf(phases, task.phase);
   const sections: [string, string][] = [
     ["Ne yapılacak", task.what],
     ["Neden önemli", task.why],

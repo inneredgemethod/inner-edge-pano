@@ -2,17 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { PHASES, currentPhase } from "@/lib/data";
+import { currentPhase } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { OWNERS } from "@/lib/types";
 
 export default function Ekle() {
-  const { addTask, me, today } = useStore();
+  const { addTask, phases, me, today } = useStore();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [owner, setOwner] = useState<string>(me);
-  const [phase, setPhase] = useState(currentPhase(today).id);
+  const [phase, setPhase] = useState(currentPhase(phases, today)?.id ?? phases[0]?.id ?? "A");
   const [due, setDue] = useState("");
   const [week, setWeek] = useState("");
 
@@ -83,7 +83,7 @@ export default function Ekle() {
               className="rounded-lg border px-3 py-2 text-sm"
               style={field}
             >
-              {PHASES.map((p) => (
+              {phases.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.n}
                 </option>

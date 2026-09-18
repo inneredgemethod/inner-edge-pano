@@ -1,6 +1,6 @@
 "use client";
 
-import { PHASES, phaseStat } from "@/lib/data";
+import { phaseStat } from "@/lib/data";
 import { useStore } from "@/lib/store";
 
 /**
@@ -14,9 +14,9 @@ export function PhaseStrip({
 }: {
   active: string | null;
   onSelect: (id: string | null) => void;
-  currentId: string;
+  currentId?: string;
 }) {
-  const { tasks } = useStore();
+  const { tasks, phases } = useStore();
 
   return (
     <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
@@ -34,7 +34,7 @@ export function PhaseStrip({
         Tümü
       </button>
 
-      {PHASES.map((p) => {
+      {phases.map((p) => {
         const s = phaseStat(tasks, p.id);
         const on = active === p.id;
         return (

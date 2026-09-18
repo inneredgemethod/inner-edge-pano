@@ -9,16 +9,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { SEED_TASKS } from "./data";
-import type { Note, Status, Task } from "./types";
+import type { Kimlik } from "./supabase/queries";
+import type { Note, Phase, Status, Task } from "./types";
 
 export type Theme = "dark" | "light" | "system";
 
 type Store = {
   tasks: Task[];
-  /** "Ben kimim" — Faz 2'de yerini magic link oturumu alacak. */
+  phases: Phase[];
+  /** Giriş yapan kişi. Artık menüden seçilmiyor, oturumdan geliyor. */
+  kimlik: Kimlik;
   me: string;
-  setMe: (name: string) => void;
   theme: Theme;
   setTheme: (t: Theme) => void;
   /** Sunucudan gelen bugün; hydration uyuşmazlığı olmasın diye prop olarak iniyor. */
@@ -26,34 +27,46 @@ type Store = {
   setStatus: (id: string, status: Status) => void;
   addNote: (id: string, body: string) => void;
   updateTask: (id: string, patch: Partial<Pick<Task, "owner" | "due">>) => void;
-  addTask: (input: Omit<Task, "id" | "status" | "notes" | "what" | "why" | "done" | "createdBy">) => void;
+  addTask: (
+    input: Omit<Task, "id" | "status" | "notes" | "what" | "why" | "done" | "createdBy">,
+  ) => void;
   removeTask: (id: string) => void;
-  /** K6: bir görevi yalnızca ekleyen kişi veya Kürşad silebilir. */
+  /** K6: bir görevi yalnızca ekleyen kişi veya admin (Kürşad) silebilir. */
   canDelete: (t: Task) => boolean;
 };
 
 const Ctx = createContext<Store | null>(null);
-
-const ME_KEY = "inner-edge:me";
 const THEME_KEY = "inner-edge:theme";
 
-export function StoreProvider({ today, children }: { today: string; children: ReactNode }) {
-  const [tasks, setTasks] = useState<Task[]>(SEED_TASKS);
-  const [me, setMeState] = useState<string>("Kürşad");
+export function StoreProvider({
+  today,
+  kimlik,
+  tasks: ilkTasks,
+  phases,
+  children,
+}: {
+  today: string;
+  kimlik: Kimlik;
+  tasks: Task[];
+  phases: Phase[];
+  children: ReactNode;
+}) {
+  // NOT (Faz 2): değişiklikler şimdilik sadece bu sekmede duruyor, veritabanına
+  // yazılmıyor. Yazma + Realtime Faz 3'te bağlanacak.
+  const [tasks, setTasks] = useState<Task[]>(ilkTasks);
   const [theme, setThemeState] = useState<Theme>("dark");
 
-  // localStorage yalnızca tarayıcıda var; ilk render sunucuda olduğu için
-  // tercihleri mount'tan sonra okuyoruz.
+  // Sunucudan yeni veri gelirse (sayfa yenileme, router.refresh) üstüne yaz.
+  useEffect(() => {
+    setTasks(ilkTasks);
+  }, [ilkTasks]);
+
   useEffect(() => {
     try {
-      const savedMe = localStorage.getItem(ME_KEY);
-      if (savedMe) setMeState(savedMe);
-      const savedTheme = localStorage.getItem(THEME_KEY) as Theme | null;
-      if (savedTheme === "dark" || savedTheme === "light" || savedTheme === "system") {
-        setThemeState(savedTheme);
-      }
+      const saved = localStorage.getItem(THEME_KEY) as Theme | null;
+      if (saved === "dark" || saved === "light" || saved === "system") setThemeState(saved);
     } catch {
-      // Gizli sekmede veya site verisi kapalıyken localStorage patlar; varsayılanlarla devam.
+      // Gizli sekmede veya site verisi kapalıyken localStorage patlar.
     }
   }, []);
 
@@ -61,19 +74,14 @@ export function StoreProvider({ today, children }: { today: string; children: Re
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  const setMe = useCallback((name: string) => {
-    setMeState(name);
-    try {
-      localStorage.setItem(ME_KEY, name);
-    } catch {}
-  }, []);
-
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
     try {
       localStorage.setItem(THEME_KEY, t);
     } catch {}
   }, []);
+
+  const me = kimlik.display_name;
 
   const setStatus = useCallback((id: string, status: Status) => {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
@@ -84,9 +92,7 @@ export function StoreProvider({ today, children }: { today: string; children: Re
       const text = body.trim();
       if (!text) return;
       const note: Note = { actor: me, at: new Date().toISOString(), body: text };
-      setTasks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, notes: [...t.notes, note] } : t)),
-      );
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, notes: [...t.notes, note] } : t)));
     },
     [me],
   );
@@ -105,27 +111,28 @@ export function StoreProvider({ today, children }: { today: string; children: Re
         what: "",
         why: "",
         done: "",
-        createdBy: me,
+        createdBy: kimlik.email,
       };
       setTasks((prev) => [...prev, task]);
     },
-    [me],
-  );
-
-  const canDelete = useCallback(
-    (t: Task) => me === "Kürşad" || (!!t.createdBy && t.createdBy === me),
-    [me],
+    [kimlik.email],
   );
 
   const removeTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const canDelete = useCallback(
+    (t: Task) => kimlik.is_admin || (!!t.createdBy && t.createdBy === kimlik.email),
+    [kimlik],
+  );
+
   const value = useMemo<Store>(
     () => ({
       tasks,
+      phases,
+      kimlik,
       me,
-      setMe,
       theme,
       setTheme,
       today,
@@ -136,7 +143,7 @@ export function StoreProvider({ today, children }: { today: string; children: Re
       removeTask,
       canDelete,
     }),
-    [tasks, me, setMe, theme, setTheme, today, setStatus, addNote, updateTask, addTask, removeTask, canDelete],
+    [tasks, phases, kimlik, me, theme, setTheme, today, setStatus, addNote, updateTask, addTask, removeTask, canDelete],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

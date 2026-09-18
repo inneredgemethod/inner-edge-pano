@@ -51,6 +51,17 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 - Skill'ler paket halinde değil **tek tek** kurulur (06 kuralı: en fazla 8-10 aktif skill). Kurulu olanlar ve kaynakları: `~/.claude/skills/KAYNAKLAR.md`. Şu an ~1.218 token/oturum.
 - Auditor **gürültülü**: 5 skill'in 3'üne yanlış `FAIL`/`WARN` verdi. Çıktısını kurulumu engellemek için değil, bakılacak satırı göstermek için kullan — işaretlenen satırı oku, sonra karar ver.
 
+## Supabase — işletme notları (Faz 2'de kuruldu)
+- **Migration'lar** `supabase/migrations/` altında, Management API ile uygulandı. Şemayı elle panelden değiştirme; yeni bir migration dosyası yaz.
+- **Kayıt kapalı** (`disable_signup: true`). Üç hesap elle açıldı. **Dördüncü kişiyi eklemek iki adım:** (1) `auth.users`'a admin API ile hesap aç, (2) `allowed_users`'a satır ekle. Sadece birini yapmak sessizce çalışmaz.
+- **`site_url` şu an `http://localhost:3001`.** Faz 3'te Vercel adresiyle değiştirilmezse **canlıda magic link çalışmaz** — link localhost'a gider. `uri_allow_list`'e de eklenmeli.
+- **E-posta limiti: saatte 2.** Supabase'in yerleşik e-posta servisi. Üç kişi test ederken bu limite çarpılır. Kalıcı çözüm: ücretsiz bir SMTP (Resend, Brevo) bağlamak.
+- **E-posta şablonu değiştirilemiyor** (ücretsiz plan + yerleşik sağlayıcı). Bu yüzden magic link PKCE `?code=` akışını kullanıyor: **link, istendiği tarayıcıda açılmalı.** Masaüstünde isteyip telefonda açmak çalışmaz. Özel SMTP bağlanınca `token_hash` akışına geçilir — `/auth/confirm` zaten ikisini de karşılıyor.
+- **Denetçi**: `advisors/security` iki uyarı veriyor, ikisi de `is_email_allowed` hakkında ve **bilerek** öyle — giriş sayfası onu çağırmak zorunda. Gerekçe `0001_init.sql` içinde yazılı.
+
+## Test
+`npm run test:etkilesim` · `npm run test:ekran` · `npm run test:giris` — hepsi production build'e karşı koşar (`PANO_URL` ile). Ayrıntı: `tests/README.md`. Dev sunucusunda koşma, geliştirici rozeti tıklamaları yiyor.
+
 ## Yapma
 - `.env.local`'i commit'leme. `service_role` anahtarını tarayıcıya gönderme.
 - Kullanıcıya sormadan veritabanını sıfırlama veya tohum veriyi yeniden yükleme.

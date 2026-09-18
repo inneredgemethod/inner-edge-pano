@@ -6,10 +6,10 @@ import { currentPhase, overview } from "@/lib/data";
 import { useStore } from "@/lib/store";
 
 export default function GenelBakis() {
-  const { tasks, me, today } = useStore();
+  const { tasks, phases, me, today } = useStore();
   const router = useRouter();
   const o = overview(tasks, me, today);
-  const now = currentPhase(today);
+  const now = currentPhase(phases, today);
 
   const stats = [
     { label: "Yapılan / toplam", value: `${o.done}/${o.total}`, tone: "teal" },
@@ -49,17 +49,19 @@ export default function GenelBakis() {
         ))}
       </div>
 
-      <section
-        className="mb-4 rounded-lg border-l-[3px] px-3.5 py-3 text-[13px]"
-        style={{
-          background: "var(--c-bg2)",
-          borderColor: "var(--c-amber)",
-          color: "var(--c-gate-ink)",
-        }}
-      >
-        <strong>Şu an: {now.n}</strong> ({now.d})
-        <div className="mt-1">Sonraki faza geçiş şartı: {now.gate}</div>
-      </section>
+      {now && (
+        <section
+          className="mb-4 rounded-lg border-l-[3px] px-3.5 py-3 text-[13px]"
+          style={{
+            background: "var(--c-bg2)",
+            borderColor: "var(--c-amber)",
+            color: "var(--c-gate-ink)",
+          }}
+        >
+          <strong>Şu an: {now.n}</strong> ({now.d})
+          <div className="mt-1">Sonraki faza geçiş şartı: {now.gate}</div>
+        </section>
+      )}
 
       <h2 className="mb-2 text-sm font-medium" style={{ color: "var(--c-mute)" }}>
         Fazlar
@@ -68,7 +70,7 @@ export default function GenelBakis() {
       <PhaseStrip
         active={null}
         onSelect={(id) => router.push(id ? `/gorevler?faz=${id}` : "/gorevler")}
-        currentId={now.id}
+        currentId={now?.id}
       />
     </>
   );
