@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { HataBandi } from "@/components/HataBandi";
 import { BottomNav, TopBar } from "@/components/Nav";
 import { todayInIstanbul } from "@/lib/data";
 import { StoreProvider } from "@/lib/store";
@@ -22,6 +23,7 @@ export default async function PanoLayout({ children }: { children: React.ReactNo
       <TopBar />
       <main className="mx-auto max-w-5xl px-4 py-4">{children}</main>
       <BottomNav />
+      <HataBandi />
     </StoreProvider>
   );
 }

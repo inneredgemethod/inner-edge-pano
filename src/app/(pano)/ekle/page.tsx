@@ -15,6 +15,7 @@ export default function Ekle() {
   const [phase, setPhase] = useState(currentPhase(phases, today)?.id ?? phases[0]?.id ?? "A");
   const [due, setDue] = useState("");
   const [week, setWeek] = useState("");
+  const [kaydediliyor, setKaydediliyor] = useState(false);
 
   const field = {
     background: "var(--c-bg2)",
@@ -31,16 +32,18 @@ export default function Ekle() {
       </p>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          if (!title.trim()) return;
-          addTask({
+          if (!title.trim() || kaydediliyor) return;
+          setKaydediliyor(true);
+          await addTask({
             title: title.trim(),
             owner,
             phase,
             due,
             week: week.trim() || "Tarihsiz",
           });
+          setKaydediliyor(false);
           router.push("/gorevler");
         }}
         className="grid gap-3 rounded-lg border p-4"
@@ -116,10 +119,11 @@ export default function Ekle() {
 
         <button
           type="submit"
-          className="justify-self-start rounded-lg px-4 py-2 text-sm font-semibold"
+          disabled={kaydediliyor}
+          className="justify-self-start rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60"
           style={{ background: "var(--c-teal)", color: "var(--c-teal-ink)" }}
         >
-          Ekle
+          {kaydediliyor ? "Ekleniyor…" : "Ekle"}
         </button>
       </form>
     </>

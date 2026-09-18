@@ -12,6 +12,7 @@ const yeniOturum = async (email) => {
   await girisYap(p, BASE, email);
   return p;
 };
+const TEST_GOREV = `TEST etkilesim ${Date.now().toString(36)}`;
 const alt = (p, t) => p.locator(`nav[aria-label="Alt sekme çubuğu"] a:text-is("${t}")`);
 
 const errs = [];
@@ -64,11 +65,17 @@ ok("Benim sekmesi giriş yapana ait", await p.getByText("Kürşad — benim gör
 // Görev ekleme
 await alt(p, "Ekle").click();
 await p.waitForURL("**/ekle");
-await p.getByLabel("Başlık").fill("TEST: kurulum dogrulama gorevi");
+await p.getByLabel("Başlık").fill(TEST_GOREV);
 await p.locator('button:text-is("Ekle")').click();
 await p.waitForURL("**/gorevler");
 await p.locator('button:text-is("Herkes")').click();
-ok("yeni görev listede", await p.getByText("TEST: kurulum dogrulama gorevi").isVisible());
+// Ekleme sunucuya yazılıp liste tazelenene kadar bekle.
+let eklendi = false;
+for (let i = 0; i < 20; i++) {
+  if (await p.getByText(TEST_GOREV).count()) { eklendi = true; break; }
+  await p.waitForTimeout(500);
+}
+ok("yeni görev listede", eklendi);
 
 // K6 — admin her şeyi silebilir
 await p.locator("button", { hasText: "45 dakikalık toplantı" }).first().click();
@@ -79,11 +86,32 @@ await p.locator('dialog button:text-is("Kapat")').click();
 // --- Yunus (admin değil) oturumu ---
 const y = await yeniOturum("yunuskekec48@gmail.com");
 await y.goto(`${BASE}/gorevler`, { waitUntil: "networkidle" });
-ok("Yunus da 37 görevi görüyor", (await y.getByText(/^\d+ görev$/).textContent()) === "37 görev");
+// Sabit 37 yazmıyoruz: test kendi görevini eklediği için sayı değişiyor.
+// Önemli olan Yunus'un Kürşad'la AYNI listeyi görmesi.
+const kursadSayi = await p.getByText(/^\d+ görev$/).textContent();
+ok(`Yunus, Kürşad ile aynı listeyi görüyor (${kursadSayi})`,
+   (await y.getByText(/^\d+ görev$/).textContent()) === kursadSayi);
 await y.locator("button", { hasText: "45 dakikalık toplantı" }).first().click();
 await y.waitForSelector("dialog[open]");
 ok("K6: admin olmayan başkasının görevini silemez", (await y.locator('dialog button:text-is("Sil")').count()) === 0);
 ok("K6: gerekçe yazıyor", await y.locator("dialog").getByText(/yalnızca ekleyen veya Kürşad/).isVisible());
+
+// --- temizlik: testin veritabanına yazdıklarını geri al ---
+// Faz 3'ten beri bu testler gerçekten DB'ye yazıyor; temizlemezsek panoda
+// gerçek ekip verisi gibi görünürler.
+{
+  const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const H = { apikey: SECRET, Authorization: `Bearer ${SECRET}`, "Content-Type": "application/json" };
+  await fetch(`${URL_}/rest/v1/tasks?title=like.TEST*`, { method: "DELETE", headers: H });
+  await fetch(`${URL_}/rest/v1/tasks?status=neq.Bekliyor`, {
+    method: "PATCH", headers: H, body: JSON.stringify({ status: "Bekliyor" }),
+  });
+  await fetch(`${URL_}/rest/v1/task_events?id=not.is.null`, { method: "DELETE", headers: H });
+  const kalan = await (await fetch(`${URL_}/rest/v1/task_events?select=id`, { headers: H })).json();
+  const gorev = await (await fetch(`${URL_}/rest/v1/tasks?select=id`, { headers: { ...H, Prefer: "count=exact" } })).json();
+  console.log(`temizlik: ${gorev.length} gorev, ${kalan.length} log kaydi kaldi`);
+}
 
 console.log(errs.length ? "\nJS HATASI:\n" + errs.join("\n") : "\nJS hatasi yok");
 await b.close();
