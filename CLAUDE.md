@@ -57,6 +57,7 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 - **`site_url` şu an `http://localhost:3001`.** Faz 3'te Vercel adresiyle değiştirilmezse **canlıda magic link çalışmaz** — link localhost'a gider. `uri_allow_list`'e de eklenmeli.
 - **E-posta limiti: saatte 2.** Supabase'in yerleşik e-posta servisi. Üç kişi test ederken bu limite çarpılır. Kalıcı çözüm: ücretsiz bir SMTP (Resend, Brevo) bağlamak.
 - **E-posta şablonu değiştirilemiyor** (ücretsiz plan + yerleşik sağlayıcı). Bu yüzden magic link PKCE `?code=` akışını kullanıyor: **link, istendiği tarayıcıda açılmalı.** Masaüstünde isteyip telefonda açmak çalışmaz. Özel SMTP bağlanınca `token_hash` akışına geçilir — `/auth/confirm` zaten ikisini de karşılıyor.
+- **Middleware `auth/` ve `giris` yollarına DOKUNMAMALI** (`src/middleware.ts` matcher'ı). Middleware oturum tazelemek için Supabase istemcisi kurup `getClaims()` çağırıyor; oturum yokken bu, auth çerezlerini temizliyor — PKCE'nin `code-verifier` çerezi dahil. Sonuç: magic link "geçersiz" görünür. **Yaşandı, teşhisi zor.** Matcher'ı değiştirirken bu istisnayı koru.
 - **Denetçi**: `advisors/security` iki uyarı veriyor, ikisi de `is_email_allowed` hakkında ve **bilerek** öyle — giriş sayfası onu çağırmak zorunda. Gerekçe `0001_init.sql` içinde yazılı.
 
 ## Test

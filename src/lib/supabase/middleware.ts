@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Giriş yapılmadan erişilebilen yollar. */
+/**
+ * Giriş yapılmadan erişilebilen yollar. `/giris` ve `/auth/*` zaten
+ * middleware matcher'ının dışında; bu liste geriye kalanlar için güvenlik ağı.
+ */
 const ACIK = ["/giris", "/cikis"];
 
 export async function updateSession(request: NextRequest) {
