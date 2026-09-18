@@ -86,6 +86,8 @@ Hepsi `PANO_URL` ile çalışır. **Dev sunucusunda koşma** — geliştirici ro
 Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; temizlik satırını silme.
 
 ## Yapma
+- **Teşhis/deneme amacıyla gerçek görev verisini DEĞİŞTİRME.** Bir Realtime teşhis scripti bir görevin `week_label` alanını test değeriyle ezmiş ve geri almamıştı; görev panoda yanlış hafta grubuna düşmüştü. Denemen gerekiyorsa kendi eklediğin `TEST...` başlıklı bir görev üzerinde yap.
+- **Ekibe bir şey göstermeden önce `npm run dogrula`** — panoyu `04_gorevler_seed.json` ile karşılaştırır, sapma varsa listeler.
 - `.env.local`'i commit'leme. `service_role` anahtarını tarayıcıya gönderme.
 - Kullanıcıya sormadan veritabanını sıfırlama veya tohum veriyi yeniden yükleme.
 - v0.1 kapsamı dışına çıkma (dashboard, öğrenci paneli, dosya yükleme → sonraki sürümler).

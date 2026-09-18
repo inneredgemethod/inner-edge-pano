@@ -11,7 +11,8 @@
     "test:ekran": "node tests/ekran.mjs",
     "test:giris": "node tests/giris.mjs",
     "test:kalicilik": "node tests/kalicilik.mjs",
-    "test:sunucu": "bash scripts/test-sunucu.sh"
+    "test:sunucu": "bash scripts/test-sunucu.sh",
+    "dogrula": "node scripts/dogrula.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
