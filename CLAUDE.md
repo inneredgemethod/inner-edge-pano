@@ -60,6 +60,13 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 - **Middleware `auth/` ve `giris` yollarına DOKUNMAMALI** (`src/middleware.ts` matcher'ı). Middleware oturum tazelemek için Supabase istemcisi kurup `getClaims()` çağırıyor; oturum yokken bu, auth çerezlerini temizliyor — PKCE'nin `code-verifier` çerezi dahil. Sonuç: magic link "geçersiz" görünür. **Yaşandı, teşhisi zor.** Matcher'ı değiştirirken bu istisnayı koru.
 - **Denetçi**: `advisors/security` iki uyarı veriyor, ikisi de `is_email_allowed` hakkında ve **bilerek** öyle — giriş sayfası onu çağırmak zorunda. Gerekçe `0001_init.sql` içinde yazılı.
 
+## Canlı (Faz 3'te yayınlandı)
+- **Adres: https://inner-edge-pano.vercel.app** · Vercel projesi `inneredge/inner-edge-pano` · `main` dalı = canlı.
+- Deploy: `vercel deploy --prod --yes --token=$INNER_EDGE_VERCEL_TOKEN` (her vercel komutu token'la — `vercel login`'e dokunma).
+- **Vercel'de sadece 2 değişken var**: `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY`. `SUPABASE_SERVICE_ROLE_KEY` **bilerek gönderilmedi** — uygulama onu çalışırken kullanmıyor, yalnızca yerel `scripts/seed.mjs` kullanıyor. RLS'i atlayan anahtar Kürşad'ın makinesinde kalsın.
+- `vercel link` de `.env.local`'e dokunuyor (sonuna `VERCEL_OIDC_TOKEN` ekliyor, üzerine yazmıyor) ve `.gitignore`'a `.env*` satırı ekledi.
+- Supabase `site_url` artık canlı adres; `uri_allow_list`'te canlı + Vercel önizleme + localhost 3000/3001/3002 var.
+
 ## Test
 `npm run test:etkilesim` · `npm run test:ekran` · `npm run test:giris` — hepsi production build'e karşı koşar (`PANO_URL` ile). Ayrıntı: `tests/README.md`. Dev sunucusunda koşma, geliştirici rozeti tıklamaları yiyor.
 
