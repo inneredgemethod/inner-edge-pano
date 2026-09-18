@@ -1,0 +1,13 @@
+# Yerel gizli dosyalar Vercel'e YUKLENMEZ.
+#
+# Next.js build sirasinda .env.local'i okur ve Vercel'in ortam degiskenlerinin
+# ONUNE gecer. Bu yuzden panonun sifresi Vercel'de degistirildigi halde canlida
+# eski sifre gecerli kalmisti. Ayrica service_role ve yonetim token'larinin
+# build ortamina gitmesinin hicbir sebebi yok.
+.env
+.env.*
+!.env.local.example
+
+# Testler ve yerel ciktiar
+tests/ekran-goruntuleri
+scripts/yedek-*.json
