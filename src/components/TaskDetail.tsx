@@ -20,7 +20,7 @@ const ON_STYLE: Record<Status, { bg: string; fg: string }> = {
  * eski veride donup kalıyor.
  */
 export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose: () => void }) {
-  const { tasks, phases, setStatus, addNote, updateTask, removeTask, canDelete } = useStore();
+  const { tasks, phases, setStatus, addNote, updateTask, removeTask } = useStore();
   const task = tasks.find((t) => t.id === taskId) ?? null;
   const [draft, setDraft] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -195,23 +195,17 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
         className="flex items-center justify-between gap-2 border-t px-5 py-3"
         style={{ borderColor: "var(--c-line)" }}
       >
-        {canDelete(task) ? (
-          <button
-            type="button"
-            onClick={() => {
-              removeTask(task.id);
-              onClose();
-            }}
-            className="rounded-lg border px-3 py-1.5 text-sm"
-            style={{ borderColor: "var(--c-red)", color: "var(--c-red)" }}
-          >
-            Sil
-          </button>
-        ) : (
-          <span className="text-xs" style={{ color: "var(--c-mute)" }}>
-            Bu görevi yalnızca ekleyen veya Kürşad silebilir.
-          </span>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            removeTask(task.id);
+            onClose();
+          }}
+          className="rounded-lg border px-3 py-1.5 text-sm"
+          style={{ borderColor: "var(--c-red)", color: "var(--c-red)" }}
+        >
+          Sil
+        </button>
         <div className="flex items-center gap-2">
           <StatusBadge status={task.status} />
           <button

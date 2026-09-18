@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { PhaseStrip } from "@/components/PhaseStrip";
 import { TaskDetail } from "@/components/TaskDetail";
 import { TaskList } from "@/components/TaskList";
+import { TopluCubuk } from "@/components/TopluCubuk";
 import { currentPhase, isDone, isLate, isStuck } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { MEMBERS } from "@/lib/types";
@@ -18,6 +19,8 @@ function Gorevler() {
   const [hideDone, setHideDone] = useState(false);
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [secimModu, setSecimModu] = useState(false);
+  const [secililer, setSecililer] = useState<Set<string>>(new Set());
 
   const now = currentPhase(phases, today);
 
@@ -30,6 +33,22 @@ function Gorevler() {
     if (onlyOpen && !isStuck(t) && !isLate(t, today)) return false;
     return true;
   });
+
+  const gorunurIdler = visible.map((t) => t.id);
+  const hepsiSecili = gorunurIdler.length > 0 && gorunurIdler.every((id) => secililer.has(id));
+
+  const secToggle = (id: string) =>
+    setSecililer((prev) => {
+      const y = new Set(prev);
+      if (y.has(id)) y.delete(id);
+      else y.add(id);
+      return y;
+    });
+
+  const secimiKapat = () => {
+    setSecimModu(false);
+    setSecililer(new Set());
+  };
 
   const chips: { key: string | null; label: string }[] = [
     { key: null, label: "Herkes" },
@@ -76,10 +95,55 @@ function Gorevler() {
         <span className="ml-auto text-[13px]" style={{ color: "var(--c-mute)" }}>
           {visible.length} görev
         </span>
+        <button
+          type="button"
+          onClick={() => (secimModu ? secimiKapat() : setSecimModu(true))}
+          aria-pressed={secimModu}
+          className="rounded-lg border px-2.5 py-1 text-[13px]"
+          style={{
+            borderColor: secimModu ? "var(--c-teal)" : "var(--c-line)",
+            color: secimModu ? "var(--c-teal)" : "var(--c-mute)",
+          }}
+        >
+          {secimModu ? "Seçimi kapat" : "Seç"}
+        </button>
       </div>
 
-      <TaskList tasks={visible} onOpen={(t) => setOpenId(t.id)} />
+      {secimModu && (
+        <label
+          className="mt-3 flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px]"
+          style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
+        >
+          <input
+            type="checkbox"
+            checked={hepsiSecili}
+            onChange={() => setSecililer(hepsiSecili ? new Set() : new Set(gorunurIdler))}
+            className="size-4"
+          />
+          Görünen {visible.length} görevin tümünü seç
+        </label>
+      )}
+
+      <TaskList
+        tasks={visible}
+        onOpen={(t) => setOpenId(t.id)}
+        secimModu={secimModu}
+        secililer={secililer}
+        onSec={secToggle}
+      />
+
+      {/* Alt çubuk içeriği örtmesin. */}
+      {secimModu && <div className="h-24" aria-hidden />}
+
       <TaskDetail taskId={openId} onClose={() => setOpenId(null)} />
+
+      {secimModu && (
+        <TopluCubuk
+          secililer={[...secililer]}
+          onTemizle={() => setSecililer(new Set())}
+          onCik={secimiKapat}
+        />
+      )}
     </>
   );
 }

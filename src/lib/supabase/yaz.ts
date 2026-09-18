@@ -69,3 +69,33 @@ export async function gorevSil(id: string): Promise<YazmaHatasi> {
   const { error } = await browserClient().from("tasks").delete().eq("id", id);
   return mesaj(error);
 }
+
+// ---------------------------------------------------------------------------
+// Toplu işlemler
+// ---------------------------------------------------------------------------
+
+/**
+ * Toplu güncelleme. Log trigger'ı her satır için ayrı çalışır, yani 10 görevin
+ * sorumlusunu değiştirmek 10 log satırı üretir — istediğimiz bu, "kim neyi
+ * değiştirdi" tek tek kalsın.
+ */
+export async function topluGuncelle(
+  ids: string[],
+  patch: { owner?: string; phase?: string; due?: string },
+  kisi: string,
+): Promise<YazmaHatasi> {
+  if (ids.length === 0) return null;
+  const db: Record<string, unknown> = { son_degistiren: kisi };
+  if (patch.owner !== undefined) db.owner = patch.owner;
+  if (patch.phase !== undefined) db.phase_id = patch.phase;
+  if (patch.due !== undefined) db.due_date = patch.due || null;
+
+  const { error } = await browserClient().from("tasks").update(db).in("id", ids);
+  return mesaj(error);
+}
+
+export async function topluSil(ids: string[]): Promise<YazmaHatasi> {
+  if (ids.length === 0) return null;
+  const { error } = await browserClient().from("tasks").delete().in("id", ids);
+  return mesaj(error);
+}

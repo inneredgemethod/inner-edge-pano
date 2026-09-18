@@ -14,7 +14,7 @@ import {
 import { browserClient } from "./supabase/client";
 import { kisiYaz } from "./kisi";
 import type { Kadro } from "./supabase/queries";
-import { alanYaz, durumYaz, gorevEkle, gorevSil, notYaz } from "./supabase/yaz";
+import { alanYaz, durumYaz, gorevEkle, gorevSil, notYaz, topluGuncelle, topluSil } from "./supabase/yaz";
 import type { Note, Phase, Status, Task } from "./types";
 
 export type Theme = "dark" | "light" | "system";
@@ -44,8 +44,9 @@ type Store = {
     input: Omit<Task, "id" | "status" | "notes" | "what" | "why" | "done" | "createdBy">,
   ) => Promise<void>;
   removeTask: (id: string) => void;
-  /** K6: bir görevi yalnızca ekleyen kişi veya admin (Kürşad) silebilir. */
-  canDelete: (t: Task) => boolean;
+  /** Toplu işlemler (A1). */
+  topluDegistir: (ids: string[], patch: { owner?: string; phase?: string; due?: string }) => void;
+  topluKaldir: (ids: string[]) => void;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -223,22 +224,47 @@ export function StoreProvider({
     [iyimser],
   );
 
-  // K6: ekleyen veya Kürşad. Artık beyana dayalı bir KOLAYLIK kuralı —
-  // veritabanı seviyesinde zorlanamıyor (0005_tek_sifreli_giris.sql).
-  const canDelete = useCallback(
-    (t: Task) => me === "Kürşad" || (!!t.createdBy && t.createdBy === me),
-    [me],
+  const hatayiKapat = useCallback(() => setHata(null), []);
+
+  const topluDegistir = useCallback<Store["topluDegistir"]>(
+    (ids, patch) => {
+      const kume = new Set(ids);
+      void iyimser(
+        (prev) =>
+          prev.map((t) =>
+            kume.has(t.id)
+              ? {
+                  ...t,
+                  ...(patch.owner !== undefined ? { owner: patch.owner } : {}),
+                  ...(patch.phase !== undefined ? { phase: patch.phase } : {}),
+                  ...(patch.due !== undefined ? { due: patch.due } : {}),
+                }
+              : t,
+          ),
+        () => topluGuncelle(ids, patch, me),
+      );
+    },
+    [iyimser, me],
   );
 
-  const hatayiKapat = useCallback(() => setHata(null), []);
+  const topluKaldir = useCallback<Store["topluKaldir"]>(
+    (ids) => {
+      const kume = new Set(ids);
+      void iyimser(
+        (prev) => prev.filter((t) => !kume.has(t.id)),
+        () => topluSil(ids),
+      );
+    },
+    [iyimser],
+  );
 
   const value = useMemo<Store>(
     () => ({
       tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
-      setStatus, addNote, updateTask, addTask, removeTask, canDelete,
+      setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir,
     }),
     [tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
-     setStatus, addNote, updateTask, addTask, removeTask, canDelete],
+     setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

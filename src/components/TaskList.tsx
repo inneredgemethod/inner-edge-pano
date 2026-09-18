@@ -8,10 +8,16 @@ export function TaskList({
   tasks,
   onOpen,
   empty = "Bu filtrede görev yok.",
+  secimModu = false,
+  secililer,
+  onSec,
 }: {
   tasks: Task[];
   onOpen: (t: Task) => void;
   empty?: string;
+  secimModu?: boolean;
+  secililer?: Set<string>;
+  onSec?: (id: string) => void;
 }) {
   if (tasks.length === 0) {
     return (
@@ -32,7 +38,14 @@ export function TaskList({
             {week}
           </h3>
           {group.map((t) => (
-            <TaskRow key={t.id} task={t} onOpen={onOpen} />
+            <TaskRow
+              key={t.id}
+              task={t}
+              onOpen={onOpen}
+              secimModu={secimModu}
+              secili={secililer?.has(t.id) ?? false}
+              onSec={onSec}
+            />
           ))}
         </section>
       ))}
