@@ -22,7 +22,7 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 
 ## Teknik yığın (kararlaştırıldı)
 - **Next.js 15, App Router, TypeScript, Tailwind CSS** — tek repo.
-- **Supabase**: Postgres + Auth (magic link, e-posta ile) + Realtime.
+- **Supabase**: Postgres + Auth (tek paylaşılan hesap, bkz. "Giriş modeli") + Realtime.
 - **Vercel**: barındırma, `main` dalı = canlı.
 - Paket yöneticisi: `npm`. Ekstra UI kütüphanesi eklemeden önce sor (shadcn/ui kabul edilebilir).
 - Mobil öncelikli: Sarah ve Yunus çoğunlukla telefondan bakacak.
@@ -31,9 +31,8 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 `05_veritabani_sema.sql` esas. Tohum verisi `04_gorevler_seed.json` (37 görev, 5 faz). Görev alanları: başlık, faz, hafta etiketi, sorumlu, hedef tarih, durum (Bekliyor/Yapılıyor/Yapıldı/Yapılamadı), "ne yapılacak / neden önemli / bitti sayılır" açıklamaları, notlar (kim, ne zaman, ne dedi).
 
 ## Yetki
-- Giriş: yalnızca izin listesindeki 3 e-posta (`allowed_users` tablosu). Başkası giriş yapamaz.
-  - Kürşad `info@inneredgemethod.io` (admin) · Sarah `sazyke@gmail.com` · Yunus `yunuskekec48@gmail.com`
-  - `Sibel`, `Emine`, `Ortak` görev **sorumlusu** olabilir ama giriş yapamaz — `tasks.owner` serbest metin, `allowed_users` sadece 3 kişi.
+- Giriş: tek ekip şifresi (yukarıdaki "Giriş modeli"). Şifreyi bilen girer.
+  - Kadro: Kürşad · Sarah · Yunus. `Sibel`, `Emine`, `Ortak` görev **sorumlusu** olabilir ama kadroda değil.
 - Herkes her görevi görür ve değiştirebilir; her değişiklik kim tarafından yapıldığı ile loglanır.
 - Silme: sadece görevi ekleyen veya Kürşad.
 
@@ -51,24 +50,40 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 - Skill'ler paket halinde değil **tek tek** kurulur (06 kuralı: en fazla 8-10 aktif skill). Kurulu olanlar ve kaynakları: `~/.claude/skills/KAYNAKLAR.md`. Şu an ~1.218 token/oturum.
 - Auditor **gürültülü**: 5 skill'in 3'üne yanlış `FAIL`/`WARN` verdi. Çıktısını kurulumu engellemek için değil, bakılacak satırı göstermek için kullan — işaretlenen satırı oku, sonra karar ver.
 
-## Supabase — işletme notları (Faz 2'de kuruldu)
-- **Migration'lar** `supabase/migrations/` altında, Management API ile uygulandı. Şemayı elle panelden değiştirme; yeni bir migration dosyası yaz.
-- **Kayıt kapalı** (`disable_signup: true`). Üç hesap elle açıldı. **Dördüncü kişiyi eklemek iki adım:** (1) `auth.users`'a admin API ile hesap aç, (2) `allowed_users`'a satır ekle. Sadece birini yapmak sessizce çalışmaz.
-- **`site_url` şu an `http://localhost:3001`.** Faz 3'te Vercel adresiyle değiştirilmezse **canlıda magic link çalışmaz** — link localhost'a gider. `uri_allow_list`'e de eklenmeli.
-- **E-posta limiti: saatte 2.** Supabase'in yerleşik e-posta servisi. Üç kişi test ederken bu limite çarpılır. Kalıcı çözüm: ücretsiz bir SMTP (Resend, Brevo) bağlamak.
-- **E-posta şablonu değiştirilemiyor** (ücretsiz plan + yerleşik sağlayıcı). Bu yüzden magic link PKCE `?code=` akışını kullanıyor: **link, istendiği tarayıcıda açılmalı.** Masaüstünde isteyip telefonda açmak çalışmaz. Özel SMTP bağlanınca `token_hash` akışına geçilir — `/auth/confirm` zaten ikisini de karşılıyor.
-- **Middleware `auth/` ve `giris` yollarına DOKUNMAMALI** (`src/middleware.ts` matcher'ı). Middleware oturum tazelemek için Supabase istemcisi kurup `getClaims()` çağırıyor; oturum yokken bu, auth çerezlerini temizliyor — PKCE'nin `code-verifier` çerezi dahil. Sonuç: magic link "geçersiz" görünür. **Yaşandı, teşhisi zor.** Matcher'ı değiştirirken bu istisnayı koru.
-- **Denetçi**: `advisors/security` iki uyarı veriyor, ikisi de `is_email_allowed` hakkında ve **bilerek** öyle — giriş sayfası onu çağırmak zorunda. Gerekçe `0001_init.sql` içinde yazılı.
+## Giriş modeli (Faz 4'te değişti — magic link KALDIRILDI)
+Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim olduğun seçiliyor.
+
+- `PANO_SITE_PASSWORD` ekip şifresi, `.env.local`'de. **`NEXT_PUBLIC_` öneki YOK** — tarayıcıya gitmez, `/api/giris` sunucuda doğrular.
+- Şifre doğruysa sunucu **tek paylaşılan Supabase hesabıyla** (`pano@inneredgemethod.io`) oturum açar. Tarayıcıya yalnızca Supabase'in httpOnly oturum çerezi iner.
+- **Neden hâlâ Supabase oturumu var:** RLS ve Realtime tarayıcıda geçerli bir JWT istiyor. `anon` anahtarı zaten herkese açık (bundle'da); RLS'i anon'a açmak panoyu adresini bilen herkese açardı.
+- "Ben" seçimi `pano-kisi` çerezinde (httpOnly değil, sunucu da okuyabilsin diye — localStorage'dayken girişten sonra isim göz kırpıyordu).
+
+### ⚠️ Bilinçli kabul edilen takas
+**"Kim yaptı" artık doğrulanmış kimlik değil, kullanıcının BEYANI.** Yunus "Kürşad" seçip onun görevini silebilir; log "Kürşad" yazar. K6 kuralı bu yüzden bir **güvenlik sınırı değil, kolaylık kuralı** — veritabanı seviyesinde zorlanamıyor (`0005_tek_sifreli_giris.sql` bunu açıkça yazıyor). Şifre sızarsa panonun tamamı sızar; tek çare şifreyi değiştirmek. Kürşad bunları bilerek kabul etti.
+
+## Supabase — işletme notları
+- **Migration'lar** `supabase/migrations/` altında, Management API ile uygulanıyor. Şemayı panelden elle değiştirme; yeni migration dosyası yaz. Uygulanmış migration'ları **düzenleme** — üstüne yenisini yaz.
+- **`auth.users`'ta tek hesap var**: `pano@inneredgemethod.io`. Kişisel hesaplar Faz 4'te silindi.
+- **`allowed_users` artık giriş kapısı DEĞİL**, sadece kadro listesi: "Ben" menüsündeki isimler ve rozet renkleri. Dördüncü kişi eklemek = bu tabloya bir satır.
+- **`Sibel`, `Emine`, `Ortak`** kadroda yok; yalnızca görev sorumlusu olabiliyorlar.
+- **Görev sırası `sirano` sütunundan** gelir, `created_at`'ten DEĞİL: 37 tohum görev tek seferde eklendi, hepsinin zamanı aynı ve sıra her sorguda değişiyordu.
+- **Middleware `api/` ve `giris` yollarına DOKUNMAMALI** (`src/middleware.ts` matcher'ı). Middleware oturum tazelemek için Supabase istemcisi kurup `getClaims()` çağırıyor; oturum yokken auth çerezlerini temizliyor. `/api/giris` oturumu KURAN uç — matcher'a girerse giriş hiç çalışmaz. **Yaşandı, teşhisi zor.**
+- **Realtime'da oturumu BEKLE**: kanal, `getSession()` tamamlanmadan abone olursa `anon` bağlanıyor, RLS bütün olayları eliyor ve **hiçbir hata görünmeden** Realtime sessizce çalışmıyor. `src/lib/store.tsx` bunu yapıyor, bozma.
+- **Denetçi**: `advisors/security` tek bir uyarı verir — `auth_leaked_password_protection`. Açılamıyor (ücretli plan, HTTP 402) ve bizim modelde **anlamsız**: Supabase şifresini kullanıcı belirlemiyor (sunucu rastgele üretti), ekip şifresi de Supabase'de tutulmuyor. Bu uyarıyı kovalamaya gerek yok.
 
 ## Canlı (Faz 3'te yayınlandı)
 - **Adres: https://inner-edge-pano.vercel.app** · Vercel projesi `inneredge/inner-edge-pano` · `main` dalı = canlı.
 - Deploy: `vercel deploy --prod --yes --token=$INNER_EDGE_VERCEL_TOKEN` (her vercel komutu token'la — `vercel login`'e dokunma).
 - **Vercel'de sadece 2 değişken var**: `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY`. `SUPABASE_SERVICE_ROLE_KEY` **bilerek gönderilmedi** — uygulama onu çalışırken kullanmıyor, yalnızca yerel `scripts/seed.mjs` kullanıyor. RLS'i atlayan anahtar Kürşad'ın makinesinde kalsın.
 - `vercel link` de `.env.local`'e dokunuyor (sonuna `VERCEL_OIDC_TOKEN` ekliyor, üzerine yazmıyor) ve `.gitignore`'a `.env*` satırı ekledi.
-- Supabase `site_url` artık canlı adres; `uri_allow_list`'te canlı + Vercel önizleme + localhost 3000/3001/3002 var.
+- `site_url` / `uri_allow_list` artık ÖNEMSİZ: magic link kalktı, yönlendirme yok.
+- **Vercel'e `PANO_SITE_PASSWORD`, `PANO_SUPABASE_EMAIL`, `PANO_SUPABASE_PASSWORD` de girilmeli** — yoksa canlıda giriş çalışmaz.
 
 ## Test
-`npm run test:etkilesim` · `npm run test:ekran` · `npm run test:giris` — hepsi production build'e karşı koşar (`PANO_URL` ile). Ayrıntı: `tests/README.md`. Dev sunucusunda koşma, geliştirici rozeti tıklamaları yiyor.
+`npm run test:sunucu` temiz bir production sunucusu başlatır (3002), sonra:
+`npm run test:giris` · `npm run test:etkilesim` · `npm run test:kalicilik` · `npm run test:ekran`.
+Hepsi `PANO_URL` ile çalışır. **Dev sunucusunda koşma** — geliştirici rozeti tıklamaları yiyor.
+Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; temizlik satırını silme.
 
 ## Yapma
 - `.env.local`'i commit'leme. `service_role` anahtarını tarayıcıya gönderme.

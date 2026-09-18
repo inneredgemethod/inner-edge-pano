@@ -1,4 +1,4 @@
-/** Testler için oturum açar. Gerçek e-posta göndermez. */
+/** Testler için oturum açar: ekip şifresi + "Ben kimim" seçimi. */
 import { readFileSync } from "node:fs";
 
 export function envYukle() {
@@ -8,23 +8,30 @@ export function envYukle() {
   }
 }
 
-/** Verilen sayfayı Kürşad olarak giriş yaptırır ve panoya bırakır. */
-export async function girisYap(page, base, email = "info@inneredgemethod.io") {
-  const SB = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY;
+/** Giriş ekranını gerçekten doldurur — akışın kendisini de test etmiş oluyoruz. */
+export async function girisYap(page, base, kisi = "Kürşad") {
+  await page.goto(`${base}/giris`, { waitUntil: "networkidle" });
+  await page.getByLabel("Ekip şifresi").fill(process.env.PANO_SITE_PASSWORD);
+  await page.getByLabel("Ben kimim").selectOption(kisi);
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL((u) => new URL(u).pathname !== "/giris", { timeout: 20000 });
+}
 
-  const r = await fetch(`${SB}/auth/v1/admin/generate_link`, {
-    method: "POST",
-    headers: { apikey: SECRET, Authorization: `Bearer ${SECRET}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "magiclink", email }),
-  });
-  const { hashed_token } = await r.json();
-  if (!hashed_token) throw new Error("generate_link hashed_token vermedi");
-
-  await page.goto(`${base}/auth/confirm?token_hash=${hashed_token}&type=magiclink`, {
-    waitUntil: "networkidle",
-  });
-  if (new URL(page.url()).pathname === "/giris") {
-    throw new Error("giriş yapılamadı, /giris'e düştü");
-  }
+/** service_role ile doğrudan veritabanı erişimi — test temizliği için. */
+export function db() {
+  const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const H = { apikey: KEY, Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" };
+  return {
+    async temizle() {
+      await fetch(`${URL_}/rest/v1/tasks?title=like.TEST*`, { method: "DELETE", headers: H });
+      await fetch(`${URL_}/rest/v1/tasks?status=neq.Bekliyor`, {
+        method: "PATCH", headers: H, body: JSON.stringify({ status: "Bekliyor", son_degistiren: null }),
+      });
+      await fetch(`${URL_}/rest/v1/task_events?id=not.is.null`, { method: "DELETE", headers: H });
+      const gorev = await (await fetch(`${URL_}/rest/v1/tasks?select=id`, { headers: H })).json();
+      const log = await (await fetch(`${URL_}/rest/v1/task_events?select=id`, { headers: H })).json();
+      return { gorev: gorev.length, log: log.length };
+    },
+  };
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore, type Theme } from "@/lib/store";
+import { ownerColor } from "@/lib/types";
 
 const TABS = [
   { href: "/", label: "Genel", icon: "◎" },
@@ -18,7 +19,7 @@ function useActive() {
 
 /** Masaüstü: üstte tek satır navbar. Mobilde gizli. */
 export function TopBar() {
-  const { kimlik, theme, setTheme } = useStore();
+  const { kadro, me, setMe, theme, setTheme } = useStore();
   const isActive = useActive();
 
   return (
@@ -49,13 +50,25 @@ export function TopBar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <span
-            className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
-            style={{ background: kimlik.color, color: "#0b1f1c" }}
-            title={kimlik.email}
-          >
-            {kimlik.display_name}
-          </span>
+          <label className="flex items-center gap-1.5 text-xs" style={{ color: "var(--c-mute)" }}>
+            Ben:
+            <select
+              value={me}
+              onChange={(e) => setMe(e.target.value)}
+              className="rounded-lg border px-2 py-1 text-sm font-semibold"
+              style={{
+                background: ownerColor(me),
+                borderColor: "var(--c-line)",
+                color: "#0b1f1c",
+              }}
+            >
+              {kadro.map((k) => (
+                <option key={k.display_name} value={k.display_name}>
+                  {k.display_name}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <form action="/cikis" method="post">
             <button

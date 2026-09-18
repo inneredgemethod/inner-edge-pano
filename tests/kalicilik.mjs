@@ -1,120 +1,110 @@
 /**
- * Faz 3: yazma kalıcı mı, log düşüyor mu, Realtime çalışıyor mu.
- * İki ayrı tarayıcı oturumu açar (Kürşad ve Yunus).
+ * Yazma kalıcı mı, log doğru kişiyi yazıyor mu, Realtime çalışıyor mu.
+ * İki ayrı tarayıcı oturumu: Kürşad ve Yunus.
  */
 import { chromium } from "playwright";
-import { envYukle, girisYap } from "./oturum.mjs";
+import { db, envYukle, girisYap } from "./oturum.mjs";
 
 envYukle();
 const BASE = process.env.PANO_URL ?? "http://localhost:3000";
 const ok = (n, c) => console.log(`${c ? "✓" : "✗ BASARISIZ"}  ${n}`);
 const HEDEF = "45 dakikalık toplantı";
-/** Her koşuda benzersiz: onceki kosunun kalintisiyla karisirsa test yaniltir. */
 const NOT = `TEST notu ${Date.now().toString(36)}`;
+const GOREV = `TEST kalicilik ${Date.now().toString(36)}`;
 
 const b = await chromium.launch();
-const oturum = async (email) => {
+const oturum = async (kisi) => {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const p = await ctx.newPage();
-  await girisYap(p, BASE, email);
+  await girisYap(p, BASE, kisi);
   return p;
 };
-const ac = async (p) => {
-  await p.locator("button", { hasText: HEDEF }).first().click();
+const ac = async (p, baslik = HEDEF) => {
+  await p.locator("button", { hasText: baslik }).first().click();
   await p.waitForSelector("dialog[open]");
+};
+/** Realtime beklerken yenilemeden yokla. */
+const bekle = async (p, kontrol, sn = 20) => {
+  for (let i = 0; i < sn * 2; i++) {
+    if (await kontrol()) return true;
+    await p.waitForTimeout(500);
+  }
+  return false;
 };
 
 const errs = [];
-const k = await oturum("info@inneredgemethod.io");   // Kürşad
-const y = await oturum("yunuskekec48@gmail.com");    // Yunus
+const k = await oturum("Kürşad");
+const y = await oturum("Yunus");
 k.on("pageerror", (e) => errs.push("K: " + e.message));
 y.on("pageerror", (e) => errs.push("Y: " + e.message));
 
 await k.goto(`${BASE}/gorevler`, { waitUntil: "networkidle" });
 await y.goto(`${BASE}/gorevler`, { waitUntil: "networkidle" });
 
-// --- 1) Durum değişikliği kalıcı mı ---
+// 1) Durum kalıcı
 await ac(k);
 await k.locator('dialog button:text-is("Yapılıyor")').click();
-// Yazmanın tamamlanmasını bekle: iyimser güncelleme anında görünür ama
-// hemen yenilersek PATCH daha yolda olabilir.
 await k.waitForTimeout(1200);
 await k.locator('dialog button:text-is("Kapat")').click();
 await k.reload({ waitUntil: "networkidle" });
-const sonra = await k.locator("button", { hasText: HEDEF }).first().innerText();
-ok("durum sayfa yenilendikten sonra da duruyor", sonra.includes("Yapılıyor"));
+ok("durum yenilendikten sonra da duruyor",
+   (await k.locator("button", { hasText: HEDEF }).first().innerText()).includes("Yapılıyor"));
 
-// --- 2) Realtime: Yunus yenilemeden görüyor mu ---
-let gorundu = false;
-for (let i = 0; i < 40; i++) {
-  const t = await y.locator("button", { hasText: HEDEF }).first().innerText();
-  if (t.includes("Yapılıyor")) { gorundu = true; break; }
-  await y.waitForTimeout(500);
-}
-ok("Realtime: Yunus yenilemeden gördü", gorundu);
+// 2) Realtime: Yunus yenilemeden görüyor
+ok("Realtime: durum Yunus'a düştü",
+   await bekle(y, async () =>
+     (await y.locator("button", { hasText: HEDEF }).first().innerText()).includes("Yapılıyor")));
 
-// --- 3) Not kalıcı ve loglu mu ---
+// 3) Not kalıcı ve doğru kişiye yazılı
 await ac(k);
 await k.locator('dialog input[placeholder^="Not ekle"]').fill(NOT);
 await k.locator('dialog button:text-is("Ekle")').click();
 await k.waitForTimeout(1200);
 await k.reload({ waitUntil: "networkidle" });
 await ac(k);
-ok("not yenilemeden sonra da duruyor", await k.locator("dialog").getByText(NOT).isVisible());
-ok("notta kim yazdığı var", await k.locator("dialog").getByText(/Kürşad · \d/).first().isVisible());
+ok("not yenilendikten sonra da duruyor", await k.locator("dialog").getByText(NOT).isVisible());
+ok("not Kürşad adına", await k.locator("dialog").getByText(/Kürşad · \d/).first().isVisible());
 await k.locator('dialog button:text-is("Kapat")').click();
 
-// --- 4) Realtime: Yunus notu görüyor mu ---
-let notGorundu = false;
-for (let i = 0; i < 40; i++) {
-  if (await y.getByText(NOT).count()) { notGorundu = true; break; }
-  await y.waitForTimeout(500);
-}
-ok("Realtime: not Yunus'a düştü", notGorundu);
+// 4) Realtime: not Yunus'a düşüyor
+ok("Realtime: not Yunus'a düştü", await bekle(y, async () => (await y.getByText(NOT).count()) > 0));
 
-// --- 5) Görev ekleme kalıcı mı ---
-const ad = `TEST kalicilik ${Date.now().toString(36)}`;
+// 5) Yunus yazınca log ONUN adına olmalı (beyan edilen kimlik)
+await ac(y);
+await y.locator('dialog button:text-is("Yapıldı")').click();
+await y.waitForTimeout(1500);
+await y.locator('dialog button:text-is("Kapat")').click();
+{
+  const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const olaylar = await (await fetch(`${URL_}/rest/v1/task_events?select=kind,body,actor&kind=eq.status`,
+    { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } })).json();
+  const sonu = olaylar.at(-1);
+  ok(`log Yunus adına yazıldı (${sonu?.body} — ${sonu?.actor})`, sonu?.actor === "Yunus");
+}
+
+// 6) Görev ekleme kalıcı
 await k.goto(`${BASE}/ekle`, { waitUntil: "networkidle" });
-await k.getByLabel("Başlık").fill(ad);
+await k.getByLabel("Başlık").fill(GOREV);
 await k.locator('button:text-is("Ekle")').click();
 await k.waitForURL("**/gorevler");
 await k.reload({ waitUntil: "networkidle" });
-ok("yeni görev yenilemeden sonra da var", await k.getByText(ad).isVisible());
+ok("yeni görev yenilendikten sonra da var", await k.getByText(GOREV).isVisible());
 
-// --- 6) K6: Yunus, Kürşad'ın eklediğini silemiyor ---
-await y.reload({ waitUntil: "networkidle" });
-await y.getByText(ad).click();
-await y.waitForSelector("dialog[open]");
-ok("K6: başkasının eklediğinde Sil yok", (await y.locator('dialog button:text-is("Sil")').count()) === 0);
+// 7) K6: Yunus, Kürşad'ın eklediğini silemiyor
+ok("Realtime: yeni görev Yunus'a düştü", await bekle(y, async () => (await y.getByText(GOREV).count()) > 0));
+await ac(y, GOREV);
+ok("K6: Yunus başkasının görevini silemez", (await y.locator('dialog button:text-is("Sil")').count()) === 0);
 await y.locator('dialog button:text-is("Kapat")').click();
 
-// --- 7) Silme kalıcı mı ---
-await k.getByText(ad).click();
-await k.waitForSelector("dialog[open]");
+// 8) Silme kalıcı
+await ac(k, GOREV);
 await k.locator('dialog button:text-is("Sil")').click();
-await k.waitForTimeout(1200);
+await k.waitForTimeout(1500);
 await k.reload({ waitUntil: "networkidle" });
-ok("silinen görev geri gelmiyor", (await k.getByText(ad).count()) === 0);
+ok("silinen görev geri gelmiyor", (await k.getByText(GOREV).count()) === 0);
 
-// --- temizlik: testin ürettiği her şeyi geri al ---
-await ac(k);
-await k.locator('dialog button:text-is("Bekliyor")').click();
-await k.waitForTimeout(800);
-await k.locator('dialog button:text-is("Kapat")').click();
-
-// Test notlarini ve testin urettigi log satirlarini service_role ile sil,
-// yoksa panoda gercek ekip etkinligi gibi gorunuyorlar.
-{
-  const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const H = { apikey: SECRET, Authorization: `Bearer ${SECRET}` };
-  const sil = async (q) => fetch(`${URL_}/rest/v1/task_events?${q}`, { method: "DELETE", headers: H });
-  await sil(`body=like.TEST*`);
-  await sil(`body=like.*Bekliyor*`);
-  await sil(`kind=eq.created`);
-  const kalan = await (await fetch(`${URL_}/rest/v1/task_events?select=id`, { headers: H })).json();
-  console.log(`temizlik: task_events'te kalan kayit ${kalan.length}`);
-}
-
+const { gorev, log } = await db().temizle();
+console.log(`temizlik: ${gorev} gorev, ${log} log kaldi`);
 console.log(errs.length ? "\nJS HATASI:\n" + errs.join("\n") : "\nJS hatasi yok");
 await b.close();

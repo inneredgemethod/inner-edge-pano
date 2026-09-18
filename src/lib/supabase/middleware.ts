@@ -2,11 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Giriş yapılmadan erişilebilen yollar. `/giris` ve `/auth/*` zaten
- * middleware matcher'ının dışında; bu liste geriye kalanlar için güvenlik ağı.
+ * Oturumu tazeler ve oturumsuz istekleri giriş ekranına yollar.
+ * `/giris` ve `/api/*` zaten matcher'ın dışında (bkz. src/middleware.ts).
  */
-const ACIK = ["/giris", "/cikis"];
-
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -33,13 +31,10 @@ export async function updateSession(request: NextRequest) {
   // araya giren kod kullanıcıların rastgele çıkış yapmasına yol açabiliyor.
   const { data } = await supabase.auth.getClaims();
 
-  const yol = request.nextUrl.pathname;
-  const acik = ACIK.some((p) => yol.startsWith(p));
-
-  if (!data?.claims && !acik) {
+  if (!data?.claims && request.nextUrl.pathname !== "/cikis") {
     const url = request.nextUrl.clone();
     url.pathname = "/giris";
-    url.searchParams.set("devam", yol);
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

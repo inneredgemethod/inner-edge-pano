@@ -1,56 +1,41 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { browserClient } from "@/lib/supabase/client";
 
-type Durum =
-  | { tip: "bos" }
-  | { tip: "gonderiliyor" }
-  | { tip: "gonderildi"; email: string }
-  | { tip: "izinsiz" }
-  | { tip: "hata"; mesaj: string };
-
-export function GirisFormu() {
-  const [email, setEmail] = useState("");
-  const [durum, setDurum] = useState<Durum>({ tip: "bos" });
+export function GirisFormu({ kadro, seciliKisi }: { kadro: string[]; seciliKisi: string }) {
+  const router = useRouter();
+  const [sifre, setSifre] = useState("");
+  const [kisi, setKisi] = useState(seciliKisi);
+  const [gonderiliyor, setGonderiliyor] = useState(false);
+  const [hata, setHata] = useState<string | null>(null);
 
   async function gonder(e: React.FormEvent) {
     e.preventDefault();
-    const adres = email.trim().toLowerCase();
-    if (!adres) return;
-    setDurum({ tip: "gonderiliyor" });
+    if (gonderiliyor) return;
+    setGonderiliyor(true);
+    setHata(null);
 
-    const supabase = browserClient();
-
-    // Önce izin listesine bak. Bu olmadan izinsiz adrese de e-posta gidiyor ve
-    // kişi ancak linke tıkladıktan sonra duvara çarpıyor.
-    const { data: izinli, error: rpcHata } = await supabase.rpc("is_email_allowed", {
-      check_email: adres,
-    });
-
-    if (rpcHata) {
-      setDurum({ tip: "hata", mesaj: "Sunucuya ulaşılamadı. İnternetini kontrol edip tekrar dene." });
-      return;
-    }
-    if (!izinli) {
-      setDurum({ tip: "izinsiz" });
-      return;
+    let cevap: { ok?: boolean; mesaj?: string } = {};
+    try {
+      const r = await fetch("/api/giris", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sifre, kisi }),
+      });
+      cevap = await r.json();
+    } catch {
+      cevap = { ok: false, mesaj: "Sunucuya ulaşılamadı. İnternetini kontrol et." };
     }
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email: adres,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/confirm`,
-        // Kayıt Supabase tarafında da kapalı; bu ikinci bir kilit.
-        shouldCreateUser: false,
-      },
-    });
-
-    if (error) {
-      setDurum({ tip: "hata", mesaj: error.message });
+    if (!cevap.ok) {
+      setHata(cevap.mesaj ?? "Giriş yapılamadı.");
+      setGonderiliyor(false);
       return;
     }
-    setDurum({ tip: "gonderildi", email: adres });
+
+    router.replace("/");
+    router.refresh();
   }
 
   const kutu = {
@@ -59,73 +44,55 @@ export function GirisFormu() {
     color: "var(--c-ink)",
   };
 
-  if (durum.tip === "gonderildi") {
-    return (
-      <div className="rounded-lg border p-4 text-sm" style={{ ...kutu, borderColor: "var(--c-teal)" }}>
-        <strong style={{ color: "var(--c-teal)" }}>Link gönderildi.</strong>
-        <p className="mt-1.5">
-          <b>{durum.email}</b> adresine baktığında bir e-posta göreceksin. İçindeki linke tıkla,
-          panoya gireceksin. Link 1 saat geçerli.
-        </p>
-        <p className="mt-2" style={{ color: "var(--c-mute)" }}>
-          Linki bu tarayıcıda aç. Gelmediyse spam klasörüne bak.
-        </p>
-        <button
-          type="button"
-          onClick={() => setDurum({ tip: "bos" })}
-          className="mt-3 rounded-lg border px-3 py-1.5"
-          style={{ borderColor: "var(--c-line)" }}
-        >
-          Başka adres dene
-        </button>
-      </div>
-    );
-  }
-
   return (
     <form onSubmit={gonder} className="grid gap-3">
       <label className="grid gap-1 text-xs" style={{ color: "var(--c-mute)" }}>
-        E-posta
+        Ekip şifresi
         <input
-          type="email"
+          type="password"
           required
-          autoComplete="email"
-          value={email}
+          autoComplete="current-password"
+          value={sifre}
           onChange={(e) => {
-            setEmail(e.target.value);
-            if (durum.tip === "izinsiz" || durum.tip === "hata") setDurum({ tip: "bos" });
+            setSifre(e.target.value);
+            if (hata) setHata(null);
           }}
-          placeholder="senin@adresin.com"
           className="rounded-lg border px-3 py-2 text-base"
           style={kutu}
         />
       </label>
 
+      <label className="grid gap-1 text-xs" style={{ color: "var(--c-mute)" }}>
+        Ben kimim
+        <select
+          value={kisi}
+          onChange={(e) => setKisi(e.target.value)}
+          className="rounded-lg border px-3 py-2 text-base"
+          style={kutu}
+        >
+          {kadro.map((k) => (
+            <option key={k} value={k}>
+              {k}
+            </option>
+          ))}
+        </select>
+      </label>
+
       <button
         type="submit"
-        disabled={durum.tip === "gonderiliyor"}
+        disabled={gonderiliyor}
         className="rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
         style={{ background: "var(--c-teal)", color: "var(--c-teal-ink)" }}
       >
-        {durum.tip === "gonderiliyor" ? "Gönderiliyor…" : "Giriş linki gönder"}
+        {gonderiliyor ? "Giriliyor…" : "Panoya gir"}
       </button>
 
-      {durum.tip === "izinsiz" && (
-        <p
-          className="rounded-lg border p-3 text-sm"
-          style={{ borderColor: "var(--c-amber)", color: "var(--c-gate-ink)" }}
-        >
-          Bu pano ekibe özel. Bu adres izin listesinde değil. Ekipte olman gerekiyorsa
-          Kürşad&apos;a söyle, seni eklesin.
-        </p>
-      )}
-
-      {durum.tip === "hata" && (
+      {hata && (
         <p
           className="rounded-lg border p-3 text-sm"
           style={{ borderColor: "var(--c-red)", color: "var(--c-red)" }}
         >
-          {durum.mesaj}
+          {hata}
         </p>
       )}
     </form>

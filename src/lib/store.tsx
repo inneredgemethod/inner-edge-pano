@@ -12,7 +12,8 @@ import {
   type ReactNode,
 } from "react";
 import { browserClient } from "./supabase/client";
-import type { Kimlik } from "./supabase/queries";
+import { kisiYaz } from "./kisi";
+import type { Kadro } from "./supabase/queries";
 import { alanYaz, durumYaz, gorevEkle, gorevSil, notYaz } from "./supabase/yaz";
 import type { Note, Phase, Status, Task } from "./types";
 
@@ -21,9 +22,14 @@ export type Theme = "dark" | "light" | "system";
 type Store = {
   tasks: Task[];
   phases: Phase[];
-  /** Giriş yapan kişi. Menüden seçilmiyor, oturumdan geliyor. */
-  kimlik: Kimlik;
+  /** Ekip kadrosu — "Ben" menüsündeki isimler. */
+  kadro: Kadro[];
+  /**
+   * Seçili kişi. Tek şifreli girişte bu kullanıcının BEYANI, doğrulanmış
+   * kimlik değil. Sahiplik ve K6 silme kuralı buna dayanıyor.
+   */
   me: string;
+  setMe: (ad: string) => void;
   theme: Theme;
   setTheme: (t: Theme) => void;
   /** Sunucudan gelen bugün; hydration uyuşmazlığı olmasın diye prop olarak iniyor. */
@@ -47,13 +53,15 @@ const THEME_KEY = "inner-edge:theme";
 
 export function StoreProvider({
   today,
-  kimlik,
+  kadro,
+  me: sunucudanMe,
   tasks: sunucudan,
   phases,
   children,
 }: {
   today: string;
-  kimlik: Kimlik;
+  kadro: Kadro[];
+  me: string;
   tasks: Task[];
   phases: Phase[];
   children: ReactNode;
@@ -62,6 +70,18 @@ export function StoreProvider({
   const [tasks, setTasks] = useState<Task[]>(sunucudan);
   const [theme, setThemeState] = useState<Theme>("dark");
   const [hata, setHata] = useState<string | null>(null);
+  // Seçim çerezde: sunucu da okuyabildiği için ilk HTML doğru isimle çıkıyor,
+  // girişten sonra isim göz kırpması olmuyor.
+  const [me, setMeState] = useState<string>(sunucudanMe);
+
+  useEffect(() => {
+    setMeState(sunucudanMe);
+  }, [sunucudanMe]);
+
+  const setMe = useCallback((ad: string) => {
+    setMeState(ad);
+    kisiYaz(ad);
+  }, []);
 
   // Sunucudan taze veri geldiğinde (router.refresh) üstüne yaz.
   useEffect(() => {
@@ -129,8 +149,6 @@ export function StoreProvider({
     } catch {}
   }, []);
 
-  const me = kimlik.display_name;
-
   /**
    * Önce ekranda değiştir (anında tepki), sonra veritabanına yaz.
    * Yazma başarısızsa eski haline döndür ve sebebini göster — sessizce
@@ -156,10 +174,10 @@ export function StoreProvider({
     (id: string, status: Status) => {
       void iyimser(
         (prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)),
-        () => durumYaz(id, status),
+        () => durumYaz(id, status, me),
       );
     },
-    [iyimser],
+    [iyimser, me],
   );
 
   const addNote = useCallback(
@@ -169,28 +187,31 @@ export function StoreProvider({
       const note: Note = { actor: me, at: new Date().toISOString(), body: text };
       void iyimser(
         (prev) => prev.map((t) => (t.id === id ? { ...t, notes: [...t.notes, note] } : t)),
-        () => notYaz(id, text, me, kimlik.email),
+        () => notYaz(id, text, me),
       );
     },
-    [iyimser, me, kimlik.email],
+    [iyimser, me],
   );
 
   const updateTask = useCallback(
     (id: string, patch: Partial<Pick<Task, "owner" | "due">>) => {
       void iyimser(
         (prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)),
-        () => alanYaz(id, patch),
+        () => alanYaz(id, patch, me),
       );
     },
-    [iyimser],
+    [iyimser, me],
   );
 
   // Ekleme iyimser değil: gerçek id'yi veritabanı üretiyor, onu beklemek gerek.
-  const addTask = useCallback<Store["addTask"]>(async (input) => {
-    const h = await gorevEkle(input);
-    if (h) setHata(h);
-    else router.refresh();
-  }, [router]);
+  const addTask = useCallback<Store["addTask"]>(
+    async (input) => {
+      const h = await gorevEkle(input, me);
+      if (h) setHata(h);
+      else router.refresh();
+    },
+    [router, me],
+  );
 
   const removeTask = useCallback(
     (id: string) => {
@@ -202,19 +223,21 @@ export function StoreProvider({
     [iyimser],
   );
 
+  // K6: ekleyen veya Kürşad. Artık beyana dayalı bir KOLAYLIK kuralı —
+  // veritabanı seviyesinde zorlanamıyor (0005_tek_sifreli_giris.sql).
   const canDelete = useCallback(
-    (t: Task) => kimlik.is_admin || (!!t.createdBy && t.createdBy === kimlik.email),
-    [kimlik],
+    (t: Task) => me === "Kürşad" || (!!t.createdBy && t.createdBy === me),
+    [me],
   );
 
   const hatayiKapat = useCallback(() => setHata(null), []);
 
   const value = useMemo<Store>(
     () => ({
-      tasks, phases, kimlik, me, theme, setTheme, today, hata, hatayiKapat,
+      tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
       setStatus, addNote, updateTask, addTask, removeTask, canDelete,
     }),
-    [tasks, phases, kimlik, me, theme, setTheme, today, hata, hatayiKapat,
+    [tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
      setStatus, addNote, updateTask, addTask, removeTask, canDelete],
   );
 

@@ -6,14 +6,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // `auth/` ve `giris` DIŞARIDA. Middleware oturum tazelemek için bir Supabase
-  // istemcisi kurup getClaims() çağırıyor; henüz oturum yokken bu, auth
-  // çerezlerini temizliyor — PKCE'nin code-verifier çerezi dahil.
-  //   - /auth/confirm: doğrulayıcı silinince exchangeCodeForSession takas
-  //     yapamıyor, magic link "geçersiz" görünüyordu. (Yaşanan hata buydu.)
-  //   - /giris: linki istedikten sonra sayfa yenilenirse doğrulayıcı yine
-  //     silinirdi. Giriş sayfasının zaten tazelenecek oturumu yok.
+  // `api/` ve `giris` DIŞARIDA:
+  //   - /api/giris oturumu KURAN uç. Middleware'e takılsa oturum yok diye
+  //     giriş sayfasına yönlendirilir ve giriş hiç yapılamaz.
+  //   - /giris oturumsuz açılan sayfa; middleware orada Supabase istemcisi
+  //     kurup auth çerezlerini temizliyor, bu da yeni kurulan oturumu bozabiliyor.
   matcher: [
-    "/((?!auth/|giris|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api/|giris|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

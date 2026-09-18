@@ -1,8 +1,8 @@
 import { serverClient } from "./server";
 import type { Note, Phase, Status, Task } from "@/lib/types";
 
-/** Giriş yapmış kişinin allowed_users satırı. RLS sadece kendi satırını verir. */
-export type Kimlik = { email: string; display_name: string; color: string; is_admin: boolean };
+/** Ekip kadrosu — "Ben kimim" menüsündeki isimler. Giriş yetkisiyle ilgisi yok. */
+export type Kadro = { display_name: string; color: string };
 
 type TaskRow = {
   id: string;
@@ -36,30 +36,23 @@ type EventRow = {
   created_at: string;
 };
 
-export type Pano = { kimlik: Kimlik | null; tasks: Task[]; phases: Phase[] };
+export type Pano = { kadro: Kadro[]; tasks: Task[]; phases: Phase[]; oturumVar: boolean };
 
 /**
  * Panonun tamamını tek seferde okur. Üç sorgu da RLS altında çalışır:
- * izinsiz bir oturum boş dizi alır, hata almaz.
+ * oturum yoksa hepsi boş döner, hata vermez.
  */
 export async function panoyuOku(): Promise<Pano> {
   const supabase = await serverClient();
 
-  // Politika izinli kullanıcıya ekibin TAMAMINI gösteriyor (sorumlu renkleri
-  // için lazım), o yüzden kendi satırımızı e-postayla süzmemiz gerekiyor.
-  const { data: claims } = await supabase.auth.getClaims();
-  const email = (claims?.claims?.email as string | undefined) ?? "";
-
-  const [kimlikRes, taskRes, phaseRes, eventRes] = await Promise.all([
-    supabase
-      .from("allowed_users")
-      .select("email,display_name,color,is_admin")
-      .eq("email", email)
-      .maybeSingle(),
+  const [kadroRes, taskRes, phaseRes, eventRes] = await Promise.all([
+    supabase.from("allowed_users").select("display_name,color").order("display_name"),
     supabase
       .from("tasks")
       .select("id,phase_id,week_label,title,owner,due_date,status,what,why,done_when,created_by")
-      .order("created_at", { ascending: true }),
+      // created_at DEĞİL: 37 tohum görev tek seferde eklendi, hepsinin zamanı
+      // aynı ve sıra her sorguda değişiyordu (bkz. 0006_gorev_sirasi.sql).
+      .order("sirano", { ascending: true, nullsFirst: false }),
     supabase.from("phases").select("id,name,period,date_from,date_to,gate,sort").order("sort"),
     supabase
       .from("task_events")
@@ -98,5 +91,6 @@ export async function panoyuOku(): Promise<Pano> {
     gate: p.gate ?? "",
   }));
 
-  return { kimlik: (kimlikRes.data as Kimlik | null) ?? null, tasks, phases };
+  const kadro = (kadroRes.data ?? []) as Kadro[];
+  return { kadro, tasks, phases, oturumVar: kadro.length > 0 };
 }

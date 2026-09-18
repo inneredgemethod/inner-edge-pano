@@ -10,7 +10,8 @@
     "test:etkilesim": "node tests/etkilesim.mjs",
     "test:ekran": "node tests/ekran.mjs",
     "test:giris": "node tests/giris.mjs",
-    "test:kalicilik": "node tests/kalicilik.mjs"
+    "test:kalicilik": "node tests/kalicilik.mjs",
+    "test:sunucu": "bash scripts/test-sunucu.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

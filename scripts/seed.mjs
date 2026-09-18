@@ -40,7 +40,9 @@ const seed = JSON.parse(readFileSync(new URL("../04_gorevler_seed.json", import.
 
 // Tohum id'leri ("6si48z3") uuid değil ve hiçbir yerden referans verilmiyor;
 // atılıyor, gen_random_uuid() üretiyor.
-const satirlar = seed.tasks.map((t) => ({
+const satirlar = seed.tasks.map((t, i) => ({
+  // Listeleme sırası: tohum dosyasındaki sıra anlamlı, korunmalı.
+  sirano: i + 1,
   phase_id: t.phase,
   week_label: t.week || null,
   title: t.title,

@@ -18,7 +18,7 @@ Telefondan açılan, giriş yapılan, üç kişinin ortak gördüğü görev pan
 ## 4. Ekranlar
 | Ekran | İçerik |
 |---|---|
-| Giriş | E-posta yaz → magic link → içeri. İzin listesi dışı e-posta: "Bu pano ekibe özel" mesajı |
+| Giriş | Ekip şifresi + "Ben kimim" seçimi → içeri. Yanlış şifre: "Şifre yanlış" |
 | Genel bakış | Üstte 4 sayı (yapılan/toplam, benim açık görevim, geciken, takılan) + hangi fazdayız + faz geçiş şartı |
 | Görevler | Filtreler: faz sekmeleri, kişi, "yapılanları gizle", "sadece takılan/geciken". Liste: başlık, sorumlu rozeti, tarih, durum rozeti, son not özeti |
 | Görev detayı | Başlık, faz/hafta, "ne yapılacak / neden önemli / bitti sayılır", 4 durum düğmesi, sorumlu+tarih değiştirme, not akışı (kim/ne zaman), not ekleme, sil |
@@ -32,9 +32,9 @@ Referans: `03_ornek_pano.html` (mantık doğru, görünüm modernleşecek).
 | K1 | Ana gezinme | (a) Alt sekme çubuğu: Genel · Görevler · Benim · Ekle (b) Üst navbar'da kişi isimleri: Herkes · Kürşad · Sarah · Yunus (c) İkisi birden | **(c)**: mobilde alt sekme, Görevler sekmesinde kişi filtresi üstte |
 | K2 | Faz gösterimi | (a) Yatay kaydırılan faz kartları (b) Açılır menü (c) Ayrı "Fazlar" sayfası | **(a)** ama tek satır, kaydırmalı |
 | K3 | Tema | Koyu (marka: lacivert #121a24 + teal #3ee0cc) / Açık / Sistem | **Koyu varsayılan + sistem seçeneği** |
-| K4 | Giriş yöntemi | Magic link (şifresiz) / Google ile giriş / Basit PIN | **Magic link** — 3 kişi, şifre yok, ekstra kurulum yok |
+| K4 | Giriş yöntemi | Magic link (şifresiz) / Google ile giriş / Basit PIN | ~~Magic link~~ → **18 Eylül'de değişti: tek ekip şifresi.** Magic link kuruldu ve çalıştı, ama ücretsiz planda saatte 2 e-posta limiti ve "link istendiği tarayıcıda açılmalı" kısıtı ekip için uygun bulunmadı. Takas: "kim yaptı" artık doğrulanmış kimlik değil, beyan. Ayrıntı: `CLAUDE.md` › Giriş modeli |
 | K5 | Not ekleyince bildirim | Yok / E-posta / WhatsApp (ileride) | v0.1: **yok**; v0.2: günlük özet e-postası |
-| K6 | Kim silebilir | Herkes / Sadece ekleyen + Kürşad | **Ekleyen + Kürşad** |
+| K6 | Kim silebilir | Herkes / Sadece ekleyen + Kürşad | **Ekleyen + Kürşad** — K4 değişince bu bir güvenlik sınırı olmaktan çıkıp kolaylık kuralına dönüştü (veritabanı kimin kim olduğunu bilmiyor) |
 
 ## 6. Kapsam dışı (v0.1'de YAPILMAYACAK)
 Dashboard/grafik, öğrenci paneli, dosya yükleme, yorum yanıtlama, takvim entegrasyonu, WhatsApp botu, çoklu proje ayrımı. Bunlar `02_FAZLAR.md` §Sonraki sürümler'de.
