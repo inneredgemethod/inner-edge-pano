@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { BuHaftaKarti } from "@/components/BuHaftaKarti";
 import { PhaseStrip } from "@/components/PhaseStrip";
 import { currentPhase, overview } from "@/lib/data";
 import { useStore } from "@/lib/store";
@@ -48,6 +49,8 @@ export default function GenelBakis() {
           </div>
         ))}
       </div>
+
+      <BuHaftaKarti />
 
       {now && (
         <section

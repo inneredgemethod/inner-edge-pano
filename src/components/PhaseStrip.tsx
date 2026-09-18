@@ -1,6 +1,7 @@
 "use client";
 
 import { phaseStat } from "@/lib/data";
+import { aktifFazlar } from "@/lib/types";
 import { useStore } from "@/lib/store";
 
 /**
@@ -34,7 +35,7 @@ export function PhaseStrip({
         Tümü
       </button>
 
-      {phases.map((p) => {
+      {aktifFazlar(phases).map((p) => {
         const s = phaseStat(tasks, p.id);
         const on = active === p.id;
         return (

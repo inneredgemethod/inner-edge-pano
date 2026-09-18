@@ -73,6 +73,41 @@ export function haftaBasi(iso: string): string {
 }
 
 const GUN_ADLARI = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+export const HAFTA_BASLIKLARI = GUN_ADLARI;
+
+const AY_ADLARI = [
+  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+];
+
+/** "2026-09-18" -> "Eylül 2026" */
+export function ayAdi(iso: string): string {
+  const [y, m] = iso.split("-").map(Number);
+  return `${AY_ADLARI[m - 1]} ${y}`;
+}
+
+/** Ayın ilk günü. "2026-09-18" -> "2026-09-01" */
+export function ayBasi(iso: string): string {
+  return `${iso.slice(0, 7)}-01`;
+}
+
+/** Ay ekler. ayEkle("2026-09-18", 1) -> "2026-10-01" */
+export function ayEkle(iso: string, ay: number): string {
+  const [y, m] = iso.split("-").map(Number);
+  const toplam = (y * 12 + (m - 1)) + ay;
+  const yy = Math.floor(toplam / 12);
+  const mm = (toplam % 12) + 1;
+  return `${yy}-${String(mm).padStart(2, "0")}-01`;
+}
+
+/**
+ * Takvim ızgarası: ayı kapsayan, Pazartesi'den başlayan 6 haftalık gün dizisi.
+ * Sabit 42 gün — ay değişince ızgara yüksekliği zıplamasın.
+ */
+export function takvimIzgarasi(iso: string): string[] {
+  const bas = haftaBasi(ayBasi(iso));
+  return Array.from({ length: 42 }, (_, i) => gunEkle(bas, i));
+}
 
 /** "2026-09-18" -> "Per" */
 export function gunAdi(iso: string): string {

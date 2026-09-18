@@ -1,43 +1,57 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { HaftaGorunumu } from "@/components/HaftaGorunumu";
 import { PhaseStrip } from "@/components/PhaseStrip";
+import { TakvimGorunumu } from "@/components/TakvimGorunumu";
 import { TaskDetail } from "@/components/TaskDetail";
 import { TaskList } from "@/components/TaskList";
 import { TopluCubuk } from "@/components/TopluCubuk";
-import { currentPhase, isDone, isLate, isStuck } from "@/lib/data";
+import { currentPhase } from "@/lib/data";
+import { filtreyiOku, filtreyiUygula, filtreyiYaz, type Filtre, type Gorunum } from "@/lib/filtre";
 import { useStore } from "@/lib/store";
 import { panoyaGirenler } from "@/lib/types";
 
+const GORUNUM_ETIKETI: Record<Gorunum, string> = {
+  liste: "Liste",
+  hafta: "Hafta",
+  takvim: "Takvim",
+};
+
 function Gorevler() {
   const { tasks, phases, kadro, today } = useStore();
+  const pathname = usePathname();
   const params = useSearchParams();
 
-  const [phase, setPhase] = useState<string | null>(params.get("faz"));
-  const [owner, setOwner] = useState<string | null>(null);
-  const [hideDone, setHideDone] = useState(false);
-  const [onlyOpen, setOnlyOpen] = useState(false);
+  // Filtreler state'te tutulur, URL'e AYNA olarak yazılır.
+  //
+  // Neden router.replace değil: bu grup `force-dynamic`, yani her replace
+  // sunucuya gidiyor. Arama kutusunda her tuş vuruşu bir istek demekti ve
+  // filtre gözle görülür gecikmeyle uygulanıyordu. history.replaceState
+  // adresi günceller, sunucuya gitmez — link paylaşılabilirliği korunur.
+  const [filtre, setFiltre] = useState<Filtre>(() =>
+    filtreyiOku(new URLSearchParams(params.toString())),
+  );
+
+  useEffect(() => {
+    const yeni = `${pathname}${filtreyiYaz(filtre)}`;
+    if (yeni !== window.location.pathname + window.location.search) {
+      window.history.replaceState(null, "", yeni);
+    }
+  }, [filtre, pathname]);
+
+  const guncelle = (yama: Partial<Filtre>) => setFiltre((f) => ({ ...f, ...yama }));
+
   const [openId, setOpenId] = useState<string | null>(null);
   const [secimModu, setSecimModu] = useState(false);
   const [secililer, setSecililer] = useState<Set<string>>(new Set());
 
   const girenler = panoyaGirenler(kadro);
   const girenIsimler = girenler.map((k) => k.display_name);
-
   const now = currentPhase(phases, today);
 
-  const visible = tasks.filter((t) => {
-    if (phase && t.phase !== phase) return false;
-    if (owner === "diger") {
-      // "Diğerleri" = panoya girmeyen sorumlular (Sibel, Emine, Ortak) ve
-      // kadrodan çıkarılmış eski isimler.
-      if (girenIsimler.includes(t.owner)) return false;
-    } else if (owner && t.owner !== owner) return false;
-    if (hideDone && isDone(t)) return false;
-    if (onlyOpen && !isStuck(t) && !isLate(t, today)) return false;
-    return true;
-  });
+  const visible = filtreyiUygula(tasks, filtre, { today, girenIsimler });
 
   const gorunurIdler = visible.map((t) => t.id);
   const hepsiSecili = gorunurIdler.length > 0 && gorunurIdler.every((id) => secililer.has(id));
@@ -61,20 +75,55 @@ function Gorevler() {
     { key: "diger", label: "Diğerleri" },
   ];
 
+  const acGorev = (t: { id: string }) => setOpenId(t.id);
+
   return (
     <>
-      <h1 className="mb-2 text-base font-semibold">Görevler</h1>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <h1 className="text-base font-semibold">Görevler</h1>
+        <div className="ml-auto flex gap-1">
+          {(Object.keys(GORUNUM_ETIKETI) as Gorunum[]).map((g) => {
+            const on = filtre.gorunum === g;
+            return (
+              <button
+                key={g}
+                type="button"
+                onClick={() => guncelle({ gorunum: g })}
+                aria-pressed={on}
+                className="rounded-lg border px-2.5 py-1 text-[13px]"
+                style={{
+                  borderColor: on ? "var(--c-teal)" : "var(--c-line)",
+                  color: on ? "var(--c-teal)" : "var(--c-mute)",
+                  background: on ? "var(--c-bg2)" : "transparent",
+                }}
+              >
+                {GORUNUM_ETIKETI[g]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      <PhaseStrip active={phase} onSelect={setPhase} currentId={now?.id} />
+      <PhaseStrip active={filtre.faz} onSelect={(id) => guncelle({ faz: id })} currentId={now?.id} />
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <input
+        type="search"
+        value={filtre.q}
+        onChange={(e) => guncelle({ q: e.target.value })}
+        placeholder="Ara — başlık, açıklama, not"
+        aria-label="Görevlerde ara"
+        className="mt-3 w-full rounded-lg border px-3 py-2 text-sm"
+        style={{ background: "var(--c-bg2)", borderColor: "var(--c-line)", color: "var(--c-ink)" }}
+      />
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
         {chips.map((c) => {
-          const on = owner === c.key;
+          const on = filtre.kisi === c.key;
           return (
             <button
               key={c.label}
               type="button"
-              onClick={() => setOwner(c.key)}
+              onClick={() => guncelle({ kisi: c.key })}
               aria-pressed={on}
               className="rounded-full border px-3 py-1 text-[13px]"
               style={{
@@ -90,59 +139,91 @@ function Gorevler() {
 
       <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-2">
         <label className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--c-mute)" }}>
-          <input type="checkbox" checked={hideDone} onChange={(e) => setHideDone(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={filtre.bitenleriGizle}
+            onChange={(e) => guncelle({ bitenleriGizle: e.target.checked })}
+          />
           Yapılanları gizle
         </label>
         <label className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--c-mute)" }}>
-          <input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={filtre.sadeceAcik}
+            onChange={(e) => guncelle({ sadeceAcik: e.target.checked })}
+          />
           Sadece takılan / geciken
         </label>
         <span className="ml-auto text-[13px]" style={{ color: "var(--c-mute)" }}>
           {visible.length} görev
         </span>
-        <button
-          type="button"
-          onClick={() => (secimModu ? secimiKapat() : setSecimModu(true))}
-          aria-pressed={secimModu}
-          className="rounded-lg border px-2.5 py-1 text-[13px]"
-          style={{
-            borderColor: secimModu ? "var(--c-teal)" : "var(--c-line)",
-            color: secimModu ? "var(--c-teal)" : "var(--c-mute)",
-          }}
-        >
-          {secimModu ? "Seçimi kapat" : "Seç"}
-        </button>
+        {filtre.gorunum === "liste" && (
+          <button
+            type="button"
+            onClick={() => (secimModu ? secimiKapat() : setSecimModu(true))}
+            aria-pressed={secimModu}
+            className="rounded-lg border px-2.5 py-1 text-[13px]"
+            style={{
+              borderColor: secimModu ? "var(--c-teal)" : "var(--c-line)",
+              color: secimModu ? "var(--c-teal)" : "var(--c-mute)",
+            }}
+          >
+            {secimModu ? "Seçimi kapat" : "Seç"}
+          </button>
+        )}
       </div>
 
-      {secimModu && (
-        <label
-          className="mt-3 flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px]"
-          style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
-        >
-          <input
-            type="checkbox"
-            checked={hepsiSecili}
-            onChange={() => setSecililer(hepsiSecili ? new Set() : new Set(gorunurIdler))}
-            className="size-4"
+      {filtre.gorunum === "liste" && (
+        <>
+          {secimModu && (
+            <label
+              className="mt-3 flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px]"
+              style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
+            >
+              <input
+                type="checkbox"
+                checked={hepsiSecili}
+                onChange={() => setSecililer(hepsiSecili ? new Set() : new Set(gorunurIdler))}
+                className="size-4"
+              />
+              Görünen {visible.length} görevin tümünü seç
+            </label>
+          )}
+
+          <TaskList
+            tasks={visible}
+            onOpen={acGorev}
+            secimModu={secimModu}
+            secililer={secililer}
+            onSec={secToggle}
           />
-          Görünen {visible.length} görevin tümünü seç
-        </label>
+
+          {/* Alt çubuk içeriği örtmesin. */}
+          {secimModu && <div className="h-24" aria-hidden />}
+        </>
       )}
 
-      <TaskList
-        tasks={visible}
-        onOpen={(t) => setOpenId(t.id)}
-        secimModu={secimModu}
-        secililer={secililer}
-        onSec={secToggle}
-      />
+      {filtre.gorunum === "hafta" && (
+        <HaftaGorunumu
+          tasks={visible}
+          demir={filtre.tarih}
+          onDemir={(tarih) => guncelle({ tarih })}
+          onOpen={acGorev}
+        />
+      )}
 
-      {/* Alt çubuk içeriği örtmesin. */}
-      {secimModu && <div className="h-24" aria-hidden />}
+      {filtre.gorunum === "takvim" && (
+        <TakvimGorunumu
+          tasks={visible}
+          demir={filtre.tarih}
+          onDemir={(tarih) => guncelle({ tarih })}
+          onOpen={acGorev}
+        />
+      )}
 
       <TaskDetail taskId={openId} onClose={() => setOpenId(null)} />
 
-      {secimModu && (
+      {secimModu && filtre.gorunum === "liste" && (
         <TopluCubuk
           secililer={[...secililer]}
           onTemizle={() => setSecililer(new Set())}

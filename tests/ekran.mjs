@@ -17,6 +17,9 @@ const SAYFALAR = [
   ["3-benim", "/benim"],
   ["4-ekle", "/ekle"],
   ["6-ayarlar", "/ayarlar"],
+  ["9-hafta", "/gorevler?gorunum=hafta"],
+  ["10-takvim", "/gorevler?gorunum=takvim"],
+  ["11-arama", "/gorevler?q=instagram"],
 ];
 
 const browser = await chromium.launch();
