@@ -8,10 +8,10 @@ import { TaskList } from "@/components/TaskList";
 import { TopluCubuk } from "@/components/TopluCubuk";
 import { currentPhase, isDone, isLate, isStuck } from "@/lib/data";
 import { useStore } from "@/lib/store";
-import { MEMBERS } from "@/lib/types";
+import { panoyaGirenler } from "@/lib/types";
 
 function Gorevler() {
-  const { tasks, phases, today } = useStore();
+  const { tasks, phases, kadro, today } = useStore();
   const params = useSearchParams();
 
   const [phase, setPhase] = useState<string | null>(params.get("faz"));
@@ -22,12 +22,17 @@ function Gorevler() {
   const [secimModu, setSecimModu] = useState(false);
   const [secililer, setSecililer] = useState<Set<string>>(new Set());
 
+  const girenler = panoyaGirenler(kadro);
+  const girenIsimler = girenler.map((k) => k.display_name);
+
   const now = currentPhase(phases, today);
 
   const visible = tasks.filter((t) => {
     if (phase && t.phase !== phase) return false;
     if (owner === "diger") {
-      if ((MEMBERS as readonly string[]).includes(t.owner)) return false;
+      // "Diğerleri" = panoya girmeyen sorumlular (Sibel, Emine, Ortak) ve
+      // kadrodan çıkarılmış eski isimler.
+      if (girenIsimler.includes(t.owner)) return false;
     } else if (owner && t.owner !== owner) return false;
     if (hideDone && isDone(t)) return false;
     if (onlyOpen && !isStuck(t) && !isLate(t, today)) return false;
@@ -52,7 +57,7 @@ function Gorevler() {
 
   const chips: { key: string | null; label: string }[] = [
     { key: null, label: "Herkes" },
-    ...MEMBERS.map((m) => ({ key: m as string, label: m as string })),
+    ...girenler.map((k) => ({ key: k.display_name, label: k.display_name })),
     { key: "diger", label: "Diğerleri" },
   ];
 

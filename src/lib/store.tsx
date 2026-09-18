@@ -13,7 +13,7 @@ import {
 } from "react";
 import { browserClient } from "./supabase/client";
 import { kisiYaz } from "./kisi";
-import type { Kadro } from "./supabase/queries";
+
 import {
   alanYaz,
   durumYaz,
@@ -26,15 +26,15 @@ import {
   type Duzenlenebilir,
   type YeniGorev,
 } from "./supabase/yaz";
-import type { Note, Phase, Status, Task } from "./types";
+import type { Kisi, Note, Phase, Status, Task } from "./types";
 
 export type Theme = "dark" | "light" | "system";
 
 type Store = {
   tasks: Task[];
   phases: Phase[];
-  /** Ekip kadrosu — "Ben" menüsündeki isimler. */
-  kadro: Kadro[];
+  /** Ekip kadrosu — kaynak `kisiler` tablosu. */
+  kadro: Kisi[];
   /**
    * Seçili kişi. Tek şifreli girişte bu kullanıcının BEYANI, doğrulanmış
    * kimlik değil. Sahiplik ve K6 silme kuralı buna dayanıyor.
@@ -75,7 +75,7 @@ export function StoreProvider({
   children,
 }: {
   today: string;
-  kadro: Kadro[];
+  kadro: Kisi[];
   me: string;
   tasks: Task[];
   phases: Phase[];

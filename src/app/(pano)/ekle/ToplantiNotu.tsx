@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { currentPhase, formatDue } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { toplantiAyristir } from "@/lib/toplanti";
+import { aktifFazlar, sorumluOlabilir } from "@/lib/types";
 
 const ORNEK = `Sarah kurumsal paket taslağını okusun @Sarah #C !25.09
 - Yunus içerik envanterini çıkarsın @Yunus #2
@@ -16,13 +17,16 @@ export function ToplantiNotu() {
   const [metin, setMetin] = useState("");
   const [kaydediliyor, setKaydediliyor] = useState(false);
 
-  const isimler = useMemo(() => kadro.map((k) => k.display_name), [kadro]);
+  // TAM kadro (Sibel/Emine/Ortak dahil) gidiyor: eskiden yalnızca giriş yapan
+  // 3 kişi geçiliyordu ve "@Sibel" hiçbir zaman eşleşmiyordu.
+  const isimler = useMemo(() => sorumluOlabilir(kadro).map((k) => k.display_name), [kadro]);
+  const fazlar = useMemo(() => aktifFazlar(phases), [phases]);
   const satirlar = useMemo(
-    () => toplantiAyristir(metin, { phases, kadro: isimler, bugun: today }),
-    [metin, phases, isimler, today],
+    () => toplantiAyristir(metin, { phases: fazlar, kadro: isimler, bugun: today }),
+    [metin, fazlar, isimler, today],
   );
 
-  const varsayilanFaz = currentPhase(phases, today)?.id ?? phases[0]?.id ?? "A";
+  const varsayilanFaz = currentPhase(fazlar, today)?.id ?? fazlar[0]?.id ?? "A";
   const eklenebilir = satirlar.filter((s) => s.title.length > 0);
   const uyariSayisi = satirlar.reduce((n, s) => n + s.uyarilar.length, 0);
 
@@ -39,7 +43,6 @@ export function ToplantiNotu() {
         owner: s.owner ?? "Ortak",
         phase: s.phase ?? varsayilanFaz,
         due: s.due ?? "",
-        week: "",
       })),
     );
     setKaydediliyor(false);
@@ -92,7 +95,7 @@ export function ToplantiNotu() {
               "Tarih" sütunu görünmüyordu; kaydırılabildiği de belli olmuyordu. */}
           <ul className="md:hidden">
             {satirlar.map((s) => {
-              const faz = phases.find((p) => p.id === (s.phase ?? varsayilanFaz));
+              const faz = fazlar.find((p) => p.id === (s.phase ?? varsayilanFaz));
               const bos = s.title.length === 0;
               return (
                 <li
@@ -134,7 +137,7 @@ export function ToplantiNotu() {
               </thead>
               <tbody>
                 {satirlar.map((s) => {
-                  const faz = phases.find((p) => p.id === (s.phase ?? varsayilanFaz));
+                  const faz = fazlar.find((p) => p.id === (s.phase ?? varsayilanFaz));
                   const bos = s.title.length === 0;
                   return (
                     <tr

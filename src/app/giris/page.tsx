@@ -6,7 +6,12 @@ import { serverClient } from "@/lib/supabase/server";
 /** Kadro: "Ben kimim" menüsündeki isimler. Giriş yetkisiyle ilgisi yok. */
 async function kadro(): Promise<string[]> {
   const supabase = await serverClient();
-  const { data } = await supabase.from("allowed_users").select("display_name").order("display_name");
+  const { data } = await supabase
+    .from("kisiler")
+    .select("display_name")
+    .eq("sadece_sorumlu", false)
+    .eq("arsiv", false)
+    .order("sort");
   const isimler = (data ?? []).map((r) => r.display_name as string);
   // Oturum yokken RLS boş döndürür; giriş ekranında liste yine de görünmeli.
   return isimler.length ? isimler : ["Kürşad", "Sarah", "Yunus"];

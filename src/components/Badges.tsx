@@ -1,5 +1,8 @@
+"use client";
+
 import { formatDue } from "@/lib/data";
-import { ownerColor, type Status } from "@/lib/types";
+import { useStore } from "@/lib/store";
+import { kisiRengi, type Status } from "@/lib/types";
 
 /** Durum rozetinin rengi — 03_ornek_pano.html'deki .s-* sınıflarıyla aynı. */
 const STATUS_VAR: Record<Status, string> = {
@@ -22,10 +25,11 @@ export function StatusBadge({ status }: { status: Status }) {
 }
 
 export function OwnerBadge({ owner }: { owner: string }) {
+  const { kadro } = useStore();
   return (
     <span
       className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-      style={{ background: ownerColor(owner), color: "#0b1f1c" }}
+      style={{ background: kisiRengi(kadro, owner), color: "#0b1f1c" }}
     >
       {owner}
     </span>

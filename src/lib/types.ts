@@ -1,27 +1,39 @@
-/** Görev durumları — 05_veritabani_sema.sql'deki `task_status` enum'u ile birebir aynı. */
+/** Görev durumları — veritabanındaki `task_status` enum'u ile birebir aynı. */
 export const STATUSES = ["Bekliyor", "Yapılıyor", "Yapıldı", "Yapılamadı"] as const;
 export type Status = (typeof STATUSES)[number];
 
-/** Giriş yapabilen üç kişi (allowed_users tablosu). */
-export const MEMBERS = ["Kürşad", "Sarah", "Yunus"] as const;
-
-/** Görev sorumlusu olabilen ama panoya giriş yapmayan isimler. */
-export const GUESTS = ["Sibel", "Emine", "Ortak"] as const;
-
-export const OWNERS = [...MEMBERS, ...GUESTS] as const;
-
-/** Kişi renkleri — 03_ornek_pano.html'deki .o-* sınıflarından alındı. */
-export const OWNER_COLOR: Record<string, string> = {
-  "Kürşad": "#3ee0cc",
-  "Sarah": "#c9a6ff",
-  "Yunus": "#7cc4ff",
-  "Sibel": "#ffb37c",
-  "Emine": "#f7e18b",
-  "Ortak": "#d9dee5",
+/**
+ * Ekip kadrosu. Kaynak `kisiler` tablosu — burada sabit liste YOK.
+ *
+ * Eskiden isimler ve renkler bu dosyada sabitti; dört ayrı bileşen onu
+ * kopyalıyordu. Görünmeyen sonucu: toplantı notu ayrıştırıcısı kadroyu
+ * veritabanından okuduğu ve tabloda yalnızca 3 kişi bulunduğu için "@Sibel"
+ * hiçbir zaman eşleşmiyordu.
+ */
+export type Kisi = {
+  display_name: string;
+  color: string;
+  /** true ise göreve sorumlu atanabilir ama panoya girmez ("Ben" menüsünde çıkmaz). */
+  sadece_sorumlu: boolean;
+  sort: number;
+  arsiv: boolean;
 };
 
-export function ownerColor(owner: string): string {
-  return OWNER_COLOR[owner] ?? "#d9dee5";
+/** Göreve sorumlu atanabilecek kişiler. */
+export function sorumluOlabilir(kadro: Kisi[]): Kisi[] {
+  return kadro.filter((k) => !k.arsiv);
+}
+
+/** Panoya giren, yani "Ben" olarak seçilebilecek kişiler. */
+export function panoyaGirenler(kadro: Kisi[]): Kisi[] {
+  return kadro.filter((k) => !k.arsiv && !k.sadece_sorumlu);
+}
+
+/** Kadroda bulunamayan ad için nötr gri — silinmiş bir kişinin eski görevi olabilir. */
+export const NOTR_RENK = "#d9dee5";
+
+export function kisiRengi(kadro: Kisi[], ad: string): string {
+  return kadro.find((k) => k.display_name === ad)?.color ?? NOTR_RENK;
 }
 
 export type Note = {
@@ -34,7 +46,6 @@ export type Note = {
 export type Task = {
   id: string;
   phase: string;
-  week: string;
   owner: string;
   /** YYYY-MM-DD */
   due: string;
@@ -47,10 +58,7 @@ export type Task = {
   done: string;
   status: Status;
   notes: Note[];
-  /**
-   * Görevi ekleyenin adı. Tohum görevlerde yok (undefined) — K6 gereği onları
-   * yalnızca Kürşad silebilir. 05_veritabani_sema.sql'deki `created_by`'nin karşılığı.
-   */
+  /** Görevi ekleyenin beyan ettiği adı. Tohum görevlerde yok. */
   createdBy?: string;
 };
 
@@ -64,4 +72,10 @@ export type Phase = {
   to: string;
   /** sonraki faza geçiş şartı */
   gate: string;
+  arsiv: boolean;
 };
+
+/** Arşivlenmemiş fazlar — filtreler, menüler ve ayrıştırıcı bunları kullanır. */
+export function aktifFazlar(phases: Phase[]): Phase[] {
+  return phases.filter((p) => !p.arsiv);
+}

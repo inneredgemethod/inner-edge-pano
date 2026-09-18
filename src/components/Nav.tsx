@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore, type Theme } from "@/lib/store";
-import { ownerColor } from "@/lib/types";
+import { kisiRengi, panoyaGirenler } from "@/lib/types";
 
 const TABS = [
   { href: "/", label: "Genel", icon: "◎" },
@@ -57,12 +57,12 @@ export function TopBar() {
               onChange={(e) => setMe(e.target.value)}
               className="rounded-lg border px-2 py-1 text-sm font-semibold"
               style={{
-                background: ownerColor(me),
+                background: kisiRengi(kadro, me),
                 borderColor: "var(--c-line)",
                 color: "#0b1f1c",
               }}
             >
-              {kadro.map((k) => (
+              {panoyaGirenler(kadro).map((k) => (
                 <option key={k.display_name} value={k.display_name}>
                   {k.display_name}
                 </option>

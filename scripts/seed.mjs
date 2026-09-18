@@ -1,6 +1,10 @@
 /**
  * 04_gorevler_seed.json -> Supabase `tasks`.
  *
+ * NOT: tohum dosyasındaki `week` alanı artık kullanılmıyor. Zaman grupları
+ * (Gecikmiş / Bu hafta / ...) hedef tarihten türetiliyor; elle yazılan hafta
+ * etiketi yeni görevlerde boş kalıyor ve tarih değişince güncellenmiyordu.
+ *
  * Tek seferlik. Tablo doluysa KENDİLİĞİNDEN DURUR — CLAUDE.md: "Kullanıcıya
  * sormadan veritabanını sıfırlama veya tohum veriyi yeniden yükleme" yasak.
  * Bilerek tekrar yüklemek istiyorsan: node scripts/seed.mjs --force
@@ -44,7 +48,6 @@ const satirlar = seed.tasks.map((t, i) => ({
   // Listeleme sırası: tohum dosyasındaki sıra anlamlı, korunmalı.
   sirano: i + 1,
   phase_id: t.phase,
-  week_label: t.week || null,
   title: t.title,
   owner: t.owner,
   due_date: t.due || null,
@@ -53,7 +56,7 @@ const satirlar = seed.tasks.map((t, i) => ({
   why: t.why || null,
   done_when: t.done || null,
   // created_by boş: bu görevleri bir kişi eklemedi, devir paketinden geldiler.
-  // K6 gereği onları yalnızca Kürşad (is_admin) silebilir.
+  // (K6 silme kuralı Faz 5'te kaldırıldı; alan yine de "kim ekledi"yi gösteriyor.)
   created_by: null,
 }));
 

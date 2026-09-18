@@ -4,17 +4,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { currentPhase } from "@/lib/data";
 import { useStore } from "@/lib/store";
-import { OWNERS } from "@/lib/types";
+import { aktifFazlar, sorumluOlabilir } from "@/lib/types";
 
 export function TekGorev() {
-  const { addTask, phases, me, today } = useStore();
+  const { addTask, phases, kadro, me, today } = useStore();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [owner, setOwner] = useState<string>(me);
   const [phase, setPhase] = useState(currentPhase(phases, today)?.id ?? phases[0]?.id ?? "A");
   const [due, setDue] = useState("");
-  const [week, setWeek] = useState("");
   const [what, setWhat] = useState("");
   const [why, setWhy] = useState("");
   const [done, setDone] = useState("");
@@ -44,7 +43,6 @@ export function TekGorev() {
             owner,
             phase,
             due,
-            week: week.trim() || "Tarihsiz",
             what: what.trim(),
             why: why.trim(),
             done: done.trim(),
@@ -76,9 +74,9 @@ export function TekGorev() {
               className="rounded-lg border px-3 py-2 text-sm"
               style={field}
             >
-              {OWNERS.map((o) => (
-                <option key={o} value={o}>
-                  {o}
+              {sorumluOlabilir(kadro).map((k) => (
+                <option key={k.display_name} value={k.display_name}>
+                  {k.display_name}
                 </option>
               ))}
             </select>
@@ -92,7 +90,7 @@ export function TekGorev() {
               className="rounded-lg border px-3 py-2 text-sm"
               style={field}
             >
-              {phases.map((p) => (
+              {aktifFazlar(phases).map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.n}
                 </option>
@@ -111,16 +109,6 @@ export function TekGorev() {
             />
           </label>
 
-          <label className="grid gap-1 text-xs" style={{ color: "var(--c-mute)" }}>
-            Hafta etiketi (isteğe bağlı)
-            <input
-              value={week}
-              onChange={(e) => setWeek(e.target.value)}
-              placeholder="ör. Bu hafta (14-20 Eyl)"
-              className="rounded-lg border px-3 py-2 text-sm"
-              style={field}
-            />
-          </label>
         </div>
 
         {(

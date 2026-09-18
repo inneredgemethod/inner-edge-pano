@@ -1,8 +1,14 @@
 "use client";
 
-import { groupByWeek } from "@/lib/data";
+import { gorevGruplari } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import type { Task } from "@/lib/types";
 import { TaskRow } from "./TaskRow";
+
+/** Grup başlıklarının rengi — "Gecikmiş" göze çarpsın. */
+const GRUP_RENGI: Record<string, string> = {
+  "Gecikmiş": "var(--c-red)",
+};
 
 export function TaskList({
   tasks,
@@ -19,6 +25,8 @@ export function TaskList({
   secililer?: Set<string>;
   onSec?: (id: string) => void;
 }) {
+  const { today } = useStore();
+
   if (tasks.length === 0) {
     return (
       <p
@@ -32,10 +40,13 @@ export function TaskList({
 
   return (
     <>
-      {groupByWeek(tasks).map(({ week, tasks: group }) => (
-        <section key={week}>
-          <h3 className="mt-4 mb-1.5 text-xs" style={{ color: "var(--c-mute)" }}>
-            {week}
+      {gorevGruplari(tasks, today).map(({ grup, tasks: group }) => (
+        <section key={grup}>
+          <h3
+            className="mt-4 mb-1.5 text-xs font-medium"
+            style={{ color: GRUP_RENGI[grup] ?? "var(--c-mute)" }}
+          >
+            {grup} · {group.length}
           </h3>
           {group.map((t) => (
             <TaskRow

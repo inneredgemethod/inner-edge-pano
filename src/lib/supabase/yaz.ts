@@ -60,7 +60,6 @@ export type YeniGorev = {
   owner: string;
   phase: string;
   due: string;
-  week: string;
   what?: string;
   why?: string;
   done?: string;
@@ -72,7 +71,6 @@ export async function gorevEkle(input: YeniGorev, kisi: string): Promise<YazmaHa
     owner: input.owner,
     phase_id: input.phase,
     due_date: input.due || null,
-    week_label: input.week || null,
     what: input.what || null,
     why: input.why || null,
     done_when: input.done || null,
@@ -135,7 +133,7 @@ export async function yedekIndir(): Promise<YazmaHatasi> {
     sb.from("tasks").select("*").order("sirano"),
     sb.from("task_events").select("*").order("created_at"),
     sb.from("phases").select("*").order("sort"),
-    sb.from("allowed_users").select("*").order("display_name"),
+    sb.from("kisiler").select("*").order("sort"),
   ]);
 
   const ilkHata = tasks.error ?? events.error ?? phases.error ?? kadro.error;
@@ -146,7 +144,7 @@ export async function yedekIndir(): Promise<YazmaHatasi> {
     tasks: tasks.data,
     task_events: events.data,
     phases: phases.data,
-    allowed_users: kadro.data,
+    kisiler: kadro.data,
   };
 
   const tarih = new Date().toISOString().slice(0, 19).replaceAll(":", "");
@@ -180,7 +178,6 @@ export async function topluEkle(girdiler: YeniGorev[], kisi: string): Promise<Ya
         owner: g.owner,
         phase_id: g.phase,
         due_date: g.due || null,
-        week_label: g.week || null,
         what: g.what || null,
         why: g.why || null,
         done_when: g.done || null,

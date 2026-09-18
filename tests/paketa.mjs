@@ -111,8 +111,8 @@ ok(
   const { readFileSync } = await import("node:fs");
   const y = JSON.parse(readFileSync(yol, "utf8"));
   ok(
-    `yedek içeriği dolu (${y.tasks.length} görev, ${y.phases.length} faz, ${y.allowed_users.length} kişi)`,
-    y.tasks.length > 0 && y.phases.length === 5 && y.allowed_users.length === 3,
+    `yedek içeriği dolu (${y.tasks.length} görev, ${y.phases.length} faz, ${y.kisiler.length} kişi)`,
+    y.tasks.length > 0 && y.phases.length === 5 && y.kisiler.length === 6,
   );
 }
 

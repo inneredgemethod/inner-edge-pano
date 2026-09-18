@@ -26,7 +26,7 @@ const al = async (yol) => (await fetch(`${URL_}/rest/v1/${yol}`, { headers: H })
 const tasks = await al("tasks?select=id,title,owner,phase_id,status,sirano,due_date");
 const events = await al("task_events?select=id,task_id,kind,actor");
 const phases = await al("phases?select=id");
-const kadro = await al("allowed_users?select=display_name");
+const kadro = await al("kisiler?select=display_name,arsiv");
 
 const sorun = [];
 const fazIdler = new Set(phases.map((p) => p.id));

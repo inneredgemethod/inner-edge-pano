@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatDue, phaseOf } from "@/lib/data";
 import { useStore } from "@/lib/store";
-import { OWNERS, STATUSES, type Status } from "@/lib/types";
+import { sorumluOlabilir, STATUSES, type Status } from "@/lib/types";
 import { StatusBadge } from "./Badges";
 
 /** Durum düğmesi seçiliyken alacağı renkler — örnek panodaki .stbtns kalıbı. */
@@ -20,7 +20,7 @@ const ON_STYLE: Record<Status, { bg: string; fg: string }> = {
  * eski veride donup kalıyor.
  */
 export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose: () => void }) {
-  const { tasks, phases, setStatus, addNote, updateTask, removeTask } = useStore();
+  const { tasks, phases, kadro, setStatus, addNote, updateTask, removeTask } = useStore();
   const task = tasks.find((t) => t.id === taskId) ?? null;
   const [draft, setDraft] = useState("");
   const [duzenle, setDuzenle] = useState(false);
@@ -67,8 +67,8 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
       <div className="border-b px-5 py-4" style={{ borderColor: "var(--c-line)" }}>
         <h2 className="text-lg leading-snug font-semibold">{task.title}</h2>
         <p className="mt-1 text-xs" style={{ color: "var(--c-mute)" }}>
-          {phase?.n} · {task.week}
-          {task.due ? ` · hedef ${formatDue(task.due)}` : ""}
+          {phase?.n}
+          {task.due ? ` · hedef ${formatDue(task.due)}` : " · tarihsiz"}
         </p>
       </div>
 
@@ -185,9 +185,9 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
                 color: "var(--c-ink)",
               }}
             >
-              {OWNERS.map((o) => (
-                <option key={o} value={o}>
-                  {o}
+              {sorumluOlabilir(kadro).map((k) => (
+                <option key={k.display_name} value={k.display_name}>
+                  {k.display_name}
                 </option>
               ))}
             </select>

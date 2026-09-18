@@ -16,7 +16,8 @@
     "test:toplu": "node tests/toplu.mjs",
     "yedek": "node scripts/yedek.mjs",
     "test:ayristirici": "node tests/ayristirici.mjs",
-    "test:paketa": "node tests/paketa.mjs"
+    "test:paketa": "node tests/paketa.mjs",
+    "test:tarih": "node tests/tarih.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

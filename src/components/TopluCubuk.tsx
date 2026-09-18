@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
-import { OWNERS } from "@/lib/types";
+import { aktifFazlar, sorumluOlabilir } from "@/lib/types";
 
 /**
  * Seçim modundaki alt işlem çubuğu (A1).
@@ -17,7 +17,7 @@ export function TopluCubuk({
   onTemizle: () => void;
   onCik: () => void;
 }) {
-  const { phases, topluDegistir, topluKaldir } = useStore();
+  const { phases, kadro, topluDegistir, topluKaldir } = useStore();
   const [silOnayi, setSilOnayi] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -98,9 +98,9 @@ export function TopluCubuk({
               style={alan}
             >
               <option value="">Sorumlu…</option>
-              {OWNERS.map((o) => (
-                <option key={o} value={o}>
-                  {o}
+              {sorumluOlabilir(kadro).map((k) => (
+                <option key={k.display_name} value={k.display_name}>
+                  {k.display_name}
                 </option>
               ))}
             </select>
@@ -117,7 +117,7 @@ export function TopluCubuk({
               style={alan}
             >
               <option value="">Faz…</option>
-              {phases.map((p) => (
+              {aktifFazlar(phases).map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.n}
                 </option>
