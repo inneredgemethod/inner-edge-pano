@@ -166,8 +166,10 @@ Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi baz
 6. **`/nasil-kullanilir`** — ekip için kullanım kılavuzu; üstte "?" ve ana sayfada kart.
 
 ### Yarım kalan / bilinen durum
-- **"Panoyu Sıfırla"nın gerçek silme adımı hâlâ elle test edilmedi** (onay kapısı test altında).
-  Güvenli yol: `npm run yedek` → Ayarlar'dan sıfırla → `node scripts/seed.mjs` → `npm run dogrula`.
+- ~~"Panoyu Sıfırla" test edilmedi~~ → **19 Eylül'de canlıda GERÇEKTEN çalıştırıldı ve doğrulandı:**
+  37 → 0, silmeden önce yedek indi, yanlış onay kelimesiyle düğme kapalı kalıyor. Ardından
+  `scripts/yedek-2026-09-19T112744.json`'dan geri yüklendi (37 görev, `sirano` korunarak).
+  Geri yükleme log trigger'ını tetikliyor; 37 "created" kaydı temizlendi.
 - **Geçmiş sekmesi şu an boş**: testler bütün görev durumlarını "Bekliyor"a çekiyor. İlk görev
   bitirildiğinde dolar — tanıtımda canlı göstermek için iyi bir an.
 - Demo verisi (37 görev) bilerek duruyor. Toplantıda Ayarlar → Panoyu Sıfırla ile temizlenecek.
