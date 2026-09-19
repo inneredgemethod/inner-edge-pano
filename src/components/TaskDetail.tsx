@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatDue, phaseOf } from "@/lib/data";
 import { useStore } from "@/lib/store";
-import { sorumluSecenekleri, STATUSES, type Status } from "@/lib/types";
+import { sorumluSecenekleri, STATUSES, TEKRARLAR, type Status, type Tekrar } from "@/lib/types";
 import { StatusBadge } from "./Badges";
 
 /** Durum düğmesi seçiliyken alacağı renkler — örnek panodaki .stbtns kalıbı. */
@@ -70,6 +70,13 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
           {phase?.n}
           {task.due ? ` · hedef ${formatDue(task.due)}` : " · tarihsiz"}
         </p>
+        {task.tekrar && (
+          <p className="mt-1 text-xs" style={{ color: "var(--c-teal)" }}>
+            🔁 {TEKRARLAR.find(([d]) => d === task.tekrar)?.[1]} — &quot;Yapıldı&quot;
+            işaretleyince bir sonraki otomatik oluşur
+            {!task.due && " (hedef tarih gerekiyor)"}
+          </p>
+        )}
       </div>
 
       <div className="px-5 py-4">
@@ -192,6 +199,25 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
               ))}
             </select>
           </label>
+          <label className="flex items-center gap-1.5 text-xs" style={{ color: "var(--c-mute)" }}>
+            Tekrar
+            <select
+              value={task.tekrar ?? ""}
+              onChange={(e) =>
+                updateTask(task.id, { tekrar: (e.target.value || undefined) as Tekrar | undefined })
+              }
+              className="rounded-lg border px-2 py-1 text-sm"
+              style={alanStili}
+            >
+              <option value="">Tekrarsız</option>
+              {TEKRARLAR.map(([deger, etiket]) => (
+                <option key={deger} value={deger}>
+                  {etiket}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label className="flex items-center gap-1.5 text-xs" style={{ color: "var(--c-mute)" }}>
             Hedef tarih
             <input

@@ -32,6 +32,12 @@ export function db() {
         method: "PATCH", headers: H, body: JSON.stringify({ status: "Bekliyor", son_degistiren: null }),
       });
       await fetch(`${URL_}/rest/v1/task_events?id=not.is.null`, { method: "DELETE", headers: H });
+      // Yonetim testleri faz/kisi de olusturuyor; onlari da topla.
+      await fetch(`${URL_}/rest/v1/phases?id=like.test*`, { method: "DELETE", headers: H });
+      await fetch(`${URL_}/rest/v1/kisiler?display_name=like.*TEST*`, { method: "DELETE", headers: H });
+      // NOT: arsivli fazlari/kisileri toplu geri ALMIYORUZ. Kursad ileride
+      // bilerek bir fazi arsivlerse test onu sessizce geri acardi. Testler
+      // kendi arsivledigini kendi geri aliyor.
       const gorev = await (await fetch(`${URL_}/rest/v1/tasks?select=id`, { headers: H })).json();
       const log = await (await fetch(`${URL_}/rest/v1/task_events?select=id`, { headers: H })).json();
       return { gorev: gorev.length, log: log.length };

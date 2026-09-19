@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Sablon } from "./Sablon";
 import { TekGorev } from "./TekGorev";
 import { ToplantiNotu } from "./ToplantiNotu";
 
 export default function Ekle() {
-  const [mod, setMod] = useState<"tek" | "toplanti">("tek");
+  const [mod, setMod] = useState<"tek" | "toplanti" | "sablon">("tek");
 
   return (
     <>
@@ -14,6 +15,7 @@ export default function Ekle() {
           [
             ["tek", "Tek görev"],
             ["toplanti", "Toplantı notu"],
+            ["sablon", "Şablon"],
           ] as const
         ).map(([deger, etiket]) => {
           const on = mod === deger;
@@ -36,7 +38,9 @@ export default function Ekle() {
         })}
       </div>
 
-      {mod === "tek" ? <TekGorev /> : <ToplantiNotu />}
+      {mod === "tek" && <TekGorev />}
+      {mod === "toplanti" && <ToplantiNotu />}
+      {mod === "sablon" && <Sablon />}
     </>
   );
 }

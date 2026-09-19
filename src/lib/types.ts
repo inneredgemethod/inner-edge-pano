@@ -56,6 +56,13 @@ export function kisiRengi(kadro: Kisi[], ad: string): string {
   return kadro.find((k) => k.display_name === ad)?.color ?? NOTR_RENK;
 }
 
+export const TEKRARLAR = [
+  ["haftalik", "Her hafta"],
+  ["iki_haftada", "İki haftada bir"],
+  ["aylik", "Her ay"],
+] as const;
+export type Tekrar = (typeof TEKRARLAR)[number][0];
+
 export type Note = {
   actor: string;
   /** ISO 8601 */
@@ -80,6 +87,8 @@ export type Task = {
   notes: Note[];
   /** Görevi ekleyenin beyan ettiği adı. Tohum görevlerde yok. */
   createdBy?: string;
+  /** Doluysa "Yapıldı" işaretlenince bir sonraki kopya üretilir (0009). */
+  tekrar?: Tekrar;
 };
 
 export type Phase = {

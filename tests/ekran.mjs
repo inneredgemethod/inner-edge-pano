@@ -80,6 +80,11 @@ for (const olcu of OLCULER) {
   await page.waitForSelector("text=Önizleme");
   await cek("8-toplanti-notu");
 
+  // Şablon modu
+  await page.locator('button:text-is("Şablon")').click();
+  await page.waitForSelector("text=Önizleme");
+  await cek("12-sablon");
+
   await ctx.close();
 }
 

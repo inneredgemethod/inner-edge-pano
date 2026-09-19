@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Aktarim } from "@/components/Aktarim";
+import { FazYonetimi } from "@/components/FazYonetimi";
+import { KisiYonetimi } from "@/components/KisiYonetimi";
 import { useStore } from "@/lib/store";
 import { panoyuSifirla, yedekIndir } from "@/lib/supabase/yaz";
 
@@ -56,6 +59,9 @@ export default function Ayarlar() {
         </p>
       </section>
 
+      <FazYonetimi />
+      <KisiYonetimi />
+
       <section className="mb-3 rounded-lg border p-4" style={kutu}>
         <h2 className="text-sm font-semibold">Yedek al</h2>
         <p className="mt-1 mb-3 text-[13px]" style={{ color: "var(--c-mute)" }}>
@@ -74,6 +80,8 @@ export default function Ayarlar() {
           Yedeği indir
         </button>
       </section>
+
+      <Aktarim />
 
       <section className="rounded-lg border p-4" style={{ ...kutu, borderColor: "var(--c-red)" }}>
         <h2 className="text-sm font-semibold" style={{ color: "var(--c-red)" }}>

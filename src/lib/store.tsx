@@ -23,7 +23,13 @@ import {
   topluGuncelle,
   topluEkle,
   topluSil,
+  fazEkle,
+  fazYaz,
+  kisiEkle,
+  kadroYaz,
   type Duzenlenebilir,
+  type FazYaması,
+  type KisiYaması,
   type YeniGorev,
 } from "./supabase/yaz";
 import type { Kisi, Note, Phase, Status, Task } from "./types";
@@ -61,6 +67,14 @@ type Store = {
   topluKaldir: (ids: string[]) => void;
   /** Toplantı notundan çıkan görevleri tek seferde ekler (A4). */
   topluGorevEkle: (girdiler: YeniGorev[]) => Promise<string | null>;
+  /**
+   * Faz ve kişi yönetimi (2.1). İyimser güncelleme yok: nadir işlemler ve
+   * sunucudaki listeyi değiştiriyorlar, tazelemek daha doğru.
+   */
+  fazGuncelle: (id: string, yama: FazYaması) => Promise<string | null>;
+  fazOlustur: (girdi: { id: string; name: string; period: string; gate: string; sort: number }) => Promise<string | null>;
+  kisiGuncelle: (ad: string, yama: KisiYaması) => Promise<string | null>;
+  kisiOlustur: (girdi: { display_name: string; color: string; sadece_sorumlu: boolean; sort: number }) => Promise<string | null>;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -282,13 +296,43 @@ export function StoreProvider({
     [me, router],
   );
 
+  /** Ortak kalıp: yaz, hata varsa bandı göster, yoksa sunucuyu tazele. */
+  const yonetimIslemi = useCallback(
+    async (calistir: () => Promise<string | null>) => {
+      const h = await calistir();
+      if (h) setHata(h);
+      else router.refresh();
+      return h;
+    },
+    [router],
+  );
+
+  const fazGuncelle = useCallback<Store["fazGuncelle"]>(
+    (id, yama) => yonetimIslemi(() => fazYaz(id, yama)),
+    [yonetimIslemi],
+  );
+  const fazOlustur = useCallback<Store["fazOlustur"]>(
+    (girdi) => yonetimIslemi(() => fazEkle(girdi)),
+    [yonetimIslemi],
+  );
+  const kisiGuncelle = useCallback<Store["kisiGuncelle"]>(
+    (ad, yama) => yonetimIslemi(() => kadroYaz(ad, yama)),
+    [yonetimIslemi],
+  );
+  const kisiOlustur = useCallback<Store["kisiOlustur"]>(
+    (girdi) => yonetimIslemi(() => kisiEkle(girdi)),
+    [yonetimIslemi],
+  );
+
   const value = useMemo<Store>(
     () => ({
       tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
       setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir, topluGorevEkle,
+      fazGuncelle, fazOlustur, kisiGuncelle, kisiOlustur,
     }),
     [tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
-     setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir, topluGorevEkle],
+     setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir, topluGorevEkle,
+     fazGuncelle, fazOlustur, kisiGuncelle, kisiOlustur],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

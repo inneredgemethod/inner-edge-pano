@@ -1,5 +1,5 @@
 import { serverClient } from "./server";
-import type { Kisi, Note, Phase, Status, Task } from "@/lib/types";
+import type { Kisi, Note, Phase, Status, Task, Tekrar } from "@/lib/types";
 
 type TaskRow = {
   id: string;
@@ -12,6 +12,7 @@ type TaskRow = {
   why: string | null;
   done_when: string | null;
   created_by: string | null;
+  tekrar: Tekrar | null;
 };
 
 type PhaseRow = {
@@ -46,7 +47,7 @@ export async function panoyuOku(): Promise<Pano> {
     supabase.from("kisiler").select("display_name,color,sadece_sorumlu,sort,arsiv").order("sort"),
     supabase
       .from("tasks")
-      .select("id,phase_id,title,owner,due_date,status,what,why,done_when,created_by")
+      .select("id,phase_id,title,owner,due_date,status,what,why,done_when,created_by,tekrar")
       // created_at DEĞİL: 37 tohum görev tek seferde eklendi, hepsinin zamanı
       // aynı ve sıra her sorguda değişiyordu (bkz. 0006_gorev_sirasi.sql).
       .order("sirano", { ascending: true, nullsFirst: false }),
@@ -78,6 +79,7 @@ export async function panoyuOku(): Promise<Pano> {
     why: r.why ?? "",
     done: r.done_when ?? "",
     createdBy: r.created_by ?? undefined,
+    tekrar: r.tekrar ?? undefined,
     notes: notlar.get(r.id) ?? [],
   }));
 

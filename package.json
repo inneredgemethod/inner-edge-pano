@@ -19,7 +19,8 @@
     "test:paketa": "node tests/paketa.mjs",
     "test:tarih": "node tests/tarih.mjs",
     "test:gorunum": "node tests/gorunum.mjs",
-    "test:arsiv": "node tests/arsiv.mjs"
+    "test:arsiv": "node tests/arsiv.mjs",
+    "test:yonetim": "node tests/yonetim.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
