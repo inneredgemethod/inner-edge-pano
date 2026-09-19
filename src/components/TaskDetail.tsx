@@ -25,6 +25,7 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
   const [draft, setDraft] = useState("");
   const [duzenle, setDuzenle] = useState(false);
   const [taslak, setTaslak] = useState({ what: "", why: "", done: "" });
+  const [silOnayi, setSilOnayi] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
   useEffect(() => {
     setDraft("");
     setDuzenle(false);
+    setSilOnayi(false);
   }, [taskId]);
 
   if (!task) return <dialog ref={dialogRef} className="hidden" />;
@@ -201,7 +203,10 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
           </label>
           <label className="flex items-center gap-1.5 text-xs" style={{ color: "var(--c-mute)" }}>
             Tekrar
+            {/* Açık aria-label: sarmalayan `<label>`'ın metni option'ları da
+                içeriyor ("TekrarTekrarsızHer hafta…"), erişilebilir ad kirleniyordu. */}
             <select
+              aria-label="Tekrar"
               value={task.tekrar ?? ""}
               onChange={(e) =>
                 updateTask(task.id, { tekrar: (e.target.value || undefined) as Tekrar | undefined })
@@ -290,28 +295,60 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
         className="flex items-center justify-between gap-2 border-t px-5 py-3"
         style={{ borderColor: "var(--c-line)" }}
       >
-        <button
-          type="button"
-          onClick={() => {
-            removeTask(task.id);
-            onClose();
-          }}
-          className="rounded-lg border px-3 py-1.5 text-sm"
-          style={{ borderColor: "var(--c-red)", color: "var(--c-red)" }}
-        >
-          Sil
-        </button>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={task.status} />
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border px-3 py-1.5 text-sm"
-            style={{ borderColor: "var(--c-line)", color: "var(--c-ink)" }}
-          >
-            Kapat
-          </button>
-        </div>
+        {/* İki adımlı silme. Eskiden tek tıkla, ONAYSIZ siliyordu — kodun en
+            büyük tutarsızlığıydı (toplu silme ve pano sıfırlama onay soruyor).
+            İç içe `<dialog>` yerine satır içi onay: bu pencere zaten modal. */}
+        {silOnayi ? (
+          <>
+            <span className="text-sm" style={{ color: "var(--c-red)" }}>
+              Silinsin mi? Geri alınamaz.
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSilOnayi(false)}
+                className="min-h-[2.5rem] rounded-lg border px-4 py-1.5 text-sm"
+                style={{ borderColor: "var(--c-line)", color: "var(--c-ink)" }}
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  removeTask(task.id);
+                  setSilOnayi(false);
+                  onClose();
+                }}
+                className="min-h-[2.5rem] rounded-lg px-4 py-1.5 text-sm font-semibold"
+                style={{ background: "var(--c-red)", color: "#fff" }}
+              >
+                Evet, sil
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => setSilOnayi(true)}
+              className="min-h-[2.5rem] rounded-lg border px-4 py-1.5 text-sm"
+              style={{ borderColor: "var(--c-red)", color: "var(--c-red)" }}
+            >
+              Sil
+            </button>
+            <div className="flex items-center gap-2">
+              <StatusBadge status={task.status} />
+              <button
+                type="button"
+                onClick={onClose}
+                className="min-h-[2.5rem] rounded-lg border px-4 py-1.5 text-sm"
+                style={{ borderColor: "var(--c-line)", color: "var(--c-ink)" }}
+              >
+                Kapat
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </dialog>
   );

@@ -20,6 +20,8 @@ const SAYFALAR = [
   ["9-hafta", "/gorevler?gorunum=hafta"],
   ["10-takvim", "/gorevler?gorunum=takvim"],
   ["11-arama", "/gorevler?q=instagram"],
+  ["13-nasil-kullanilir", "/nasil-kullanilir"],
+  ["14-gecmis", "/gorevler?gorunum=gecmis"],
 ];
 
 const browser = await chromium.launch();
@@ -80,7 +82,16 @@ for (const olcu of OLCULER) {
   await page.waitForSelector("text=Önizleme");
   await cek("8-toplanti-notu");
 
-  // Şablon modu
+  // Notlarım sekmesi (mod yerel state, URL'den acilamiyor)
+await page.goto(`${BASE}/benim`, { waitUntil: "networkidle" });
+await page.locator("button[aria-label='Notlarım']").click();
+await page.waitForSelector("text=Gizli değildir");
+await cek("15-notlarim");
+
+await page.goto(`${BASE}/ekle`, { waitUntil: "networkidle" });
+await page.locator('button:text-is("Toplantı notu")').click();
+
+// Şablon modu
   await page.locator('button:text-is("Şablon")').click();
   await page.waitForSelector("text=Önizleme");
   await cek("12-sablon");

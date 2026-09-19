@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BuHaftaKarti } from "@/components/BuHaftaKarti";
 import { PhaseStrip } from "@/components/PhaseStrip";
@@ -22,6 +23,15 @@ export default function GenelBakis() {
   return (
     <>
       <h1 className="sr-only">Genel bakış</h1>
+
+      <Link
+        href="/nasil-kullanilir"
+        className="mb-3 flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-sm"
+        style={{ background: "var(--c-bg2)", borderColor: "var(--c-teal)", color: "var(--c-teal)" }}
+      >
+        <span aria-hidden>❓</span>
+        Panoyu ilk kez mi kullanıyorsun? → Nasıl kullanılır
+      </Link>
 
       <div className="mb-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
         {stats.map((s) => (

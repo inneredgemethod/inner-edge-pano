@@ -10,6 +10,10 @@ export function todayInIstanbul(): string {
 }
 
 const AYLAR = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+const AY_UZUN = [
+  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+];
 
 /** "2026-09-17" -> "17 Eyl" */
 export function formatDue(iso: string): string {
@@ -157,6 +161,33 @@ export function gorevGruplari(tasks: Task[], today: string): { grup: Grup; tasks
     kova.get(g)!.push(t);
   }
   return GRUPLAR.filter((g) => kova.has(g)).map((grup) => ({ grup, tasks: kova.get(grup)! }));
+}
+
+/**
+ * "Geçmiş" görünümü: tamamlanmış görevler bitiş gününe göre, en yeni gün
+ * üstte. `bitisAni` yoksa (0011 öncesi bitmiş, geri doldurulamamış görev)
+ * hedef tarihe düşüyor; o da yoksa "Tarihi bilinmiyor" kovasına.
+ */
+export function tamamlananGruplari(
+  tasks: Task[],
+): { gun: string; etiket: string; tasks: Task[] }[] {
+  const kova = new Map<string, Task[]>();
+  for (const t of tasks) {
+    if (!isDone(t)) continue;
+    const gun = t.bitisAni ? t.bitisAni.slice(0, 10) : t.due || "";
+    if (!kova.has(gun)) kova.set(gun, []);
+    kova.get(gun)!.push(t);
+  }
+  return [...kova.entries()]
+    // Boş anahtar ("tarihi bilinmiyor") her zaman en sonda.
+    .sort(([a], [b]) => (a === "" ? 1 : b === "" ? -1 : b.localeCompare(a)))
+    .map(([gun, tasks]) => ({ gun, etiket: gun ? gunBasligi(gun) : "Tarihi bilinmiyor", tasks }));
+}
+
+/** "2026-09-18" -> "18 Eylül 2026" */
+export function gunBasligi(iso: string): string {
+  const [y, a, g] = iso.split("-").map(Number);
+  return `${g} ${AY_UZUN[a - 1]} ${y}`;
 }
 
 export type Overview = { done: number; total: number; mine: number; late: number; stuck: number };

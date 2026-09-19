@@ -70,6 +70,19 @@ export function TopBar() {
             </select>
           </label>
 
+          {/* Alt menüye 5. sekme EKLENMEDİ: grid-cols-4'ü bozmak telefonda
+              dört sekmeyi de daraltır ve 4.25rem yüksekliğe bağlı üç ayrı yer
+              (globals.css body padding, TopluCubuk'un bottom-[4.25rem]) kırılır. */}
+          <Link
+            href="/nasil-kullanilir"
+            aria-label="Nasıl kullanılır"
+            title="Nasıl kullanılır"
+            className="rounded-lg border px-2.5 py-1 text-sm"
+            style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
+          >
+            ?
+          </Link>
+
           <Link
             href="/ayarlar"
             aria-label="Ayarlar"

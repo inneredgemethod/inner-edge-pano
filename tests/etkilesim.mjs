@@ -82,11 +82,12 @@ ok("faz filtresi (B 10)", (await p.getByText(/^\d+ görev$/).textContent()) === 
 // Benim sekmesi seçili kişiyi izliyor
 await alt("Benim").click();
 await p.waitForURL("**/benim");
-ok("Benim sekmesi Kürşad'ı gösteriyor", await p.getByText("Kürşad — benim görevlerim").isVisible());
+// Baslik artik sadece isim: altina "Görevlerim / Notlarım" sekmeleri geldi.
+ok("Benim sekmesi Kürşad'ı gösteriyor", (await p.locator("h1").innerText()) === "Kürşad");
 
 // Ben'i değiştir -> Benim sekmesi takip etsin
 await benSec("Yunus");
-ok("Ben değişince Benim sekmesi de değişti", await p.getByText("Yunus — benim görevlerim").isVisible());
+ok("Ben değişince Benim sekmesi de değişti", (await p.locator("h1").innerText()) === "Yunus");
 await benSec("Kürşad");
 
 // Görev ekleme

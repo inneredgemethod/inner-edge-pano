@@ -125,7 +125,10 @@ await p.getByLabel("Görevlerde ara").fill(TEKRAR_GOREV);
 await p.waitForTimeout(500);
 await p.getByText(TEKRAR_GOREV).first().click();
 await p.waitForSelector("dialog[open]");
-await p.getByLabel("Tekrar").selectOption("haftalik");
+// exact + dialog kapsami: gorev basligi "TEST tekrar ..." oldugu icin satirdaki
+// eylem dugmelerinin aria-label'lari da "tekrar" iceriyor ve gevsek getByLabel
+// uc elemana birden denk geliyordu.
+await p.locator("dialog").getByLabel("Tekrar", { exact: true }).selectOption("haftalik");
 await p.waitForTimeout(1500);
 ok("tekrar rozeti çıktı", await p.locator("dialog").getByText(/Her hafta/).first().isVisible());
 

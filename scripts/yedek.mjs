@@ -22,6 +22,7 @@ const yedek = {
   task_events: await al("task_events?select=*&order=created_at"),
   phases: await al("phases?select=*&order=sort"),
   kisiler: await al("kisiler?select=*&order=sort"),
+  notlar: await al("notlar?select=*&order=created_at"),
 };
 
 const tarih = new Date().toISOString().slice(0, 19).replaceAll(":", "");

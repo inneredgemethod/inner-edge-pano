@@ -6,7 +6,7 @@ import type { Task } from "./types";
  * ekibe link olarak gönderebilmek için (B5). Bileşen state'inde tutulsaydı
  * link paylaşılamaz, geri tuşu da filtreleri hatırlamazdı.
  */
-export type Gorunum = "liste" | "hafta" | "takvim";
+export type Gorunum = "liste" | "hafta" | "takvim" | "gecmis";
 
 export type Filtre = {
   faz: string | null;
@@ -31,7 +31,7 @@ export const BOS_FILTRE: Filtre = {
   tarih: "",
 };
 
-const GORUNUMLER: Gorunum[] = ["liste", "hafta", "takvim"];
+const GORUNUMLER: Gorunum[] = ["liste", "hafta", "takvim", "gecmis"];
 
 export function filtreyiOku(params: URLSearchParams): Filtre {
   const gorunum = params.get("gorunum") as Gorunum | null;

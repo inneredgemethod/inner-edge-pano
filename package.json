@@ -20,7 +20,8 @@
     "test:tarih": "node tests/tarih.mjs",
     "test:gorunum": "node tests/gorunum.mjs",
     "test:arsiv": "node tests/arsiv.mjs",
-    "test:yonetim": "node tests/yonetim.mjs"
+    "test:yonetim": "node tests/yonetim.mjs",
+    "test:yarin": "node tests/yarin.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

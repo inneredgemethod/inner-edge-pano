@@ -130,14 +130,15 @@ export async function topluSil(ids: string[]): Promise<YazmaHatasi> {
  */
 export async function yedekIndir(): Promise<YazmaHatasi> {
   const sb = browserClient();
-  const [tasks, events, phases, kadro] = await Promise.all([
+  const [tasks, events, phases, kadro, notlar] = await Promise.all([
     sb.from("tasks").select("*").order("sirano"),
     sb.from("task_events").select("*").order("created_at"),
     sb.from("phases").select("*").order("sort"),
     sb.from("kisiler").select("*").order("sort"),
+    sb.from("notlar").select("*").order("created_at"),
   ]);
 
-  const ilkHata = tasks.error ?? events.error ?? phases.error ?? kadro.error;
+  const ilkHata = tasks.error ?? events.error ?? phases.error ?? kadro.error ?? notlar.error;
   if (ilkHata) return mesaj(ilkHata);
 
   const yedek = {
@@ -146,6 +147,7 @@ export async function yedekIndir(): Promise<YazmaHatasi> {
     task_events: events.data,
     phases: phases.data,
     kisiler: kadro.data,
+    notlar: notlar.data,
   };
 
   const tarih = new Date().toISOString().slice(0, 19).replaceAll(":", "");
@@ -330,5 +332,23 @@ export async function gorevleriIceAktar(
       son_degistiren: kisi,
     })),
   );
+  return mesaj(error);
+}
+
+// ---------------------------------------------------------------------------
+// Kişisel notlar (0010)
+// ---------------------------------------------------------------------------
+// ⚠ `kisi` bir filtre, erişim sınırı değil — tek paylaşılan hesap modelinde
+// RLS kişiyi ayırt edemez. Arayüz bunu kullanıcıya yazıyor.
+
+export async function kisiselNotEkle(kisi: string, icerik: string): Promise<YazmaHatasi> {
+  const metin = icerik.trim();
+  if (!metin) return null;
+  const { error } = await browserClient().from("notlar").insert({ kisi, icerik: metin });
+  return mesaj(error);
+}
+
+export async function kisiselNotSil(id: string): Promise<YazmaHatasi> {
+  const { error } = await browserClient().from("notlar").delete().eq("id", id);
   return mesaj(error);
 }

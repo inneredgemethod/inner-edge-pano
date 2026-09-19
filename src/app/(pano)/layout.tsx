@@ -11,7 +11,7 @@ import { panoyuOku } from "@/lib/supabase/queries";
 export const dynamic = "force-dynamic";
 
 export default async function PanoLayout({ children }: { children: React.ReactNode }) {
-  const { kadro, tasks, phases, oturumVar } = await panoyuOku();
+  const { kadro, tasks, phases, kisiselNotlar, oturumVar } = await panoyuOku();
 
   // Oturum yoksa RLS her şeyi boş döndürür; boş pano göstermek yerine
   // giriş ekranına gönder. (Middleware zaten yakalıyor; bu ikinci kilit.)
@@ -25,7 +25,14 @@ export default async function PanoLayout({ children }: { children: React.ReactNo
   const me = kayitli && isimler.includes(kayitli) ? kayitli : (isimler[0] ?? "Kürşad");
 
   return (
-    <StoreProvider today={today} kadro={kadro} me={me} tasks={tasks} phases={phases}>
+    <StoreProvider
+      today={today}
+      kadro={kadro}
+      me={me}
+      tasks={tasks}
+      phases={phases}
+      kisiselNotlar={kisiselNotlar}
+    >
       <TopBar />
       <main className="mx-auto max-w-5xl px-4 py-4">{children}</main>
       <BottomNav />

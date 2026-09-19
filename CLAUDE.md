@@ -72,7 +72,11 @@ Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim 
 - **Denetçi**: `advisors/security` tek bir uyarı verir — `auth_leaked_password_protection`. Açılamıyor (ücretli plan, HTTP 402) ve bizim modelde **anlamsız**: Supabase şifresini kullanıcı belirlemiyor (sunucu rastgele üretti), ekip şifresi de Supabase'de tutulmuyor. Bu uyarıyı kovalamaya gerek yok.
 
 ## Canlı (Faz 3'te yayınlandı)
-- **Adres: https://inner-edge-pano.vercel.app** · Vercel projesi `inneredge/inner-edge-pano` · `main` dalı = canlı.
+- **Adres: https://inneredgepanel.vercel.app** (asıl) · **https://inner-edge-pano.vercel.app** (eski, çalışmaya devam ediyor).
+  Proje YENİDEN ADLANDIRILMADI, ikinci alan adı EKLENDİ (`POST /v10/projects/inner-edge-pano/domains`).
+  Adlandırma eski `.vercel.app` adresini serbest bırakır ve Kürşad'ın yer imlerini kırardı.
+  **Yeni adreste şifre bir kez daha sorulur** — çerez host bazlı, ayrı host = ayrı çerez. Hata değil.
+- Vercel projesi `inneredge/inner-edge-pano` · `main` dalı = canlı.
 - Deploy: `vercel deploy --prod --yes --token=$INNER_EDGE_VERCEL_TOKEN` (her vercel komutu token'la — `vercel login`'e dokunma).
 - **Vercel'de sadece 2 değişken var**: `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY`. `SUPABASE_SERVICE_ROLE_KEY` **bilerek gönderilmedi** — uygulama onu çalışırken kullanmıyor, yalnızca yerel `scripts/seed.mjs` kullanıyor. RLS'i atlayan anahtar Kürşad'ın makinesinde kalsın.
 - `vercel link` de `.env.local`'e dokunuyor (sonuna `VERCEL_OIDC_TOKEN` ekliyor, üzerine yazmıyor) ve `.gitignore`'a `.env*` satırı ekledi.
@@ -81,9 +85,38 @@ Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim 
 
 ## Test
 `npm run test:sunucu` temiz bir production sunucusu başlatır (3002), sonra:
-`npm run test:giris` · `npm run test:etkilesim` · `npm run test:kalicilik` · `npm run test:ekran`.
+`npm run test:giris` · `npm run test:etkilesim` · `npm run test:kalicilik` · `npm run test:yarin` · `npm run test:ekran`.
+Toplam **11 paket, 185 kontrol** + 32 ekran görüntüsü.
+
+**Seçici tuzakları — yaşandı, tekrar düşme:**
+- `getByLabel("X")` GEVŞEK eşleşir. Satır eylem düğmelerinin `aria-label`'ı görev
+  başlığını içeriyor, yani başlığında "tekrar" geçen bir test görevi
+  `getByLabel("Tekrar")`'ı üç elemana birden denk getirir. Dar kapsam + `exact: true` kullan.
+- Sarmalayan `<label>` içindeki `<select>`'in erişilebilir adı `<option>` metinlerini de
+  yutuyor ("TekrarTekrarsızHer hafta…"). Select'e açık `aria-label` ver.
+- Sekme etiketi sayaç taşıyorsa (`Notlarım (3)`) `text-is` kırılır — `aria-label` ile seç.
+- PostgREST **sıralamasız** sorgu rastgele sırada döner. `task_events`'te `.at(-1)`
+  istiyorsan `order=created_at.asc` YAZ.
 Hepsi `PANO_URL` ile çalışır. **Dev sunucusunda koşma** — geliştirici rozeti tıklamaları yiyor.
 Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; temizlik satırını silme.
+
+## 20 Eylül sürümü — arayüz ve veri kuralları
+- **Görev satırı artık `<div>`, `<button>` DEĞİL.** İçinde eylem düğmeleri var; iç içe
+  `<button>` geçersiz HTML'dir. Başlık+rozetler içteki butonda — `locator("button", { hasText })`
+  seçicileri bu sayede çalışıyor, o yapıyı bozma.
+- **Satırdaki onay penceresi yalnızca açıkken basılır.** Sürekli basılsaydı her satır başlığı
+  DOM'da iki kez geçerdi (biri onay metninde) ve `getByText(başlık)` iki eleman bulurdu. **Yaşandı.**
+- **Yıkıcı düğme renk kuralı:** tetikleyici = kırmızı ÇERÇEVE, onaydaki son düğme = DOLU kırmızı.
+  Hepsini doldurmak "geri dönüşü yok" sinyalini siler. `src/components/OnayDialog.tsx` ortak bileşen.
+- **Toplantı notunda varsayılan sorumlu artık seçiliyor** (başlangıç: `me`). Eski sabit
+  varsayılan `"Ortak"`tu ve Ortak arşivlendiği için görevler arşivli kişiye gidiyordu.
+- **Ekledikten sonra `/gorevler`'e yönlendirilmiyor** — toplantıda sırayla kişi girebilmek için
+  sayfada kalınıyor. Testler bu yüzden "N görev eklendi" satırını bekler, URL değişimini değil.
+- **`completed_at` (0011) ayrı bir `before update` trigger'la yazılıyor.** `updated_at`
+  kullanılamaz: bitmiş görevin açıklaması düzeltilince tarih bugüne kayar ve Geçmiş yalan söyler.
+- **Notlar gerçekten gizli DEĞİL** (0010). `kisi` sütunu filtredir, sınır değil — tek paylaşılan
+  hesap modelinde RLS kişiyi ayırt edemez. Arayüz bunu kullanıcıya yazıyor; o cümleyi silme.
+- **`notlar` Realtime'a eklenmedi** — her not yazımında herkesin panosu tazelenirdi.
 
 ## Yönetim kuralları (Faz 5 · Kontrol Noktası 2)
 - **Faz ve kişi SİLİNMEZ, arşivlenir.** `tasks.phase_id` fazlara foreign key ile bağlı; `tasks.owner`, `tasks.created_by`, `task_events.actor` kişi adını düz metin tutuyor. Silme, görevleri kırar ya da sahipsiz bırakır.
@@ -110,3 +143,48 @@ Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; tem
 
 ## Tamamlandı tanımı (v0.1)
 Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi bazlı görülüyor, detay penceresinde durum ve not değişiyor, değişiklik diğer kişide yenilemeden görünüyor, telefonda rahat kullanılıyor.
+
+---
+
+## DEVAM PROMPTU — 19 Eylül 2026 (bir sonraki oturum buradan başlasın)
+
+### Canlı durum
+- **https://inneredgepanel.vercel.app** · eski adres **https://inner-edge-pano.vercel.app** de çalışıyor
+- Ekip şifresi: `innerteam2026` · giriş sonrası üstteki "Ben:" menüsünden kişi seçiliyor
+- **185 test geçiyor** (11 paket) · 32 ekran görüntüsü, yatay taşma 0, konsol temiz
+- Pano sağlıklı: 37 demo görev, 5 faz, 6 kişi (3'ü arşivde), 0 kişisel not
+
+### Bu oturumda bitenler (hepsi canlıda)
+1. **Yeni alan adı** eklendi, eski korundu.
+2. **Görev satırında eylem düğmeleri**: sol ✓ (tek dokunuşla bitir/geri al), sağ 🗑 (onaylı silme),
+   gövdeye dokunma = detay. TaskDetail'in onaysız silmesi iki adımlıya çevrildi.
+3. **Toplantı notunda varsayılan sorumlu + varsayılan tarih**; ekledikten sonra sayfada kalınıyor;
+   önizlemede kişi dağılımı (`Kürşad 5 · Sarah 5 · Yunus 5`).
+4. **Notlarım** — `/benim` altında ikinci sekme, `notlar` tablosu (migration 0010).
+5. **Geçmiş görünümü** — 4. görünüm modu, `completed_at` (migration 0011); takvimde bitmiş
+   görevler ✓ ve üstü çizili.
+6. **`/nasil-kullanilir`** — ekip için kullanım kılavuzu; üstte "?" ve ana sayfada kart.
+
+### Yarım kalan / bilinen durum
+- **"Panoyu Sıfırla"nın gerçek silme adımı hâlâ elle test edilmedi** (onay kapısı test altında).
+  Güvenli yol: `npm run yedek` → Ayarlar'dan sıfırla → `node scripts/seed.mjs` → `npm run dogrula`.
+- **Geçmiş sekmesi şu an boş**: testler bütün görev durumlarını "Bekliyor"a çekiyor. İlk görev
+  bitirildiğinde dolar — tanıtımda canlı göstermek için iyi bir an.
+- Demo verisi (37 görev) bilerek duruyor. Toplantıda Ayarlar → Panoyu Sıfırla ile temizlenecek.
+
+### Açık konu — Kürşad istedi
+**Kişi bazlı gerçek giriş modeli.** Bugünkü tek paylaşılan şifre yüzünden (a) "kim yaptı" bilgisi
+beyandır, (b) Notlarım gerçekten gizli değil. Kürşad "evet, ileride konuşalım" dedi. Magic link'e
+dönmeden, daha hafif bir model (kişi başı şifre + httpOnly çerez, ya da Supabase'de üç ayrı hesap)
+tasarlanmalı. **Bu ayrı bir planlama konusu, tek başına bir kontrol noktası.**
+
+### Sonraki oturumun ilk okuyacağı 3 dosya
+1. `CLAUDE.md` (bu dosya) — özellikle "20 Eylül sürümü" ve "Test" bölümleri
+2. `src/lib/store.tsx` — bütün veri akışı ve Realtime buradan geçiyor
+3. `supabase/migrations/` — 0010 ve 0011 en yeni şema
+
+### Toplantı metni yapıştırıldığında izlenecek yol
+1. Ayarlar → **Panoyu Sıfırla** (yedeği otomatik iner, onay için `SİL` yazılır)
+2. Ekle → **Toplantı notu** → varsayılan sorumlu = Yunus → satırları yapıştır → ekle
+3. Varsayılan sorumluyu Sarah yap → ekle → Kürşad yap → ekle
+4. `npm run dogrula` ile kontrol

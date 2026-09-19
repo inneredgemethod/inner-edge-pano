@@ -74,8 +74,10 @@ ok("önizleme 4 görev sayıyor", await p.getByText(/Önizleme — 4 görev/).fi
 // DOM'da, o yüzden .first().
 ok("bozuk işaret uyarı veriyor", await p.getByText(/kimse ile eşleşmedi/).first().isVisible());
 await p.locator('button:text-is("4 görevi ekle")').click();
-await p.waitForURL("**/gorevler");
-await p.waitForTimeout(2000);
+// Artik /gorevler'e YONLENDIRMIYOR: toplantida ikinci kisinin satirlarini
+// girmek icin sayfada kalmak gerekiyor. Onay satirini bekliyoruz.
+await p.getByText(/4 görev eklendi/).first().waitFor({ timeout: 15000 });
+await p.waitForTimeout(1500);
 
 {
   const r = await dbBasliklari(ET);
@@ -89,7 +91,9 @@ await p.waitForTimeout(2000);
     b1?.owner === "Sarah" && b1?.phase_id === "C" && b1?.due_date === "2026-09-25",
   );
   ok(`B2: #2 -> faz B ve madde imi temiz ("${b2?.title}")`, b2?.phase_id === "B" && b2?.title === `${ET} B2`);
-  ok(`B3 varsayılanlar (${b3?.owner}/${b3?.phase_id})`, b3?.owner === "Ortak" && b3?.phase_id === "A");
+  // Varsayilan sorumlu artik "Ortak" degil, secilen kisi (girisYap -> Kürşad).
+  // "Ortak" arsivlendigi icin eski sabit varsayilan arsivli kisiye atiyordu.
+  ok(`B3 varsayılanlar (${b3?.owner}/${b3?.phase_id})`, b3?.owner === "Kürşad" && b3?.phase_id === "A");
   ok(`B4 bozuk işarete rağmen eklendi ("${b4?.title}")`, b4?.title === `bozuk ${ET} B4`);
 }
 

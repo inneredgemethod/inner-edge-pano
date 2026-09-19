@@ -173,7 +173,20 @@ export function TakvimGorunumu({
                   className="size-2.5 shrink-0 rounded-full"
                   style={{ background: kisiRengi(kadro, t.owner) }}
                 />
-                <span className="min-w-0 flex-1">{t.title}</span>
+                {/* Bitmiş görev takvimde AYNI gününde kalıyor (ikinci bir
+                    tarihe taşımak aynı görevi iki kez çizerdi); yalnızca ✓ ve
+                    üstü çizili stille ayrışıyor. */}
+                <span
+                  className="min-w-0 flex-1"
+                  style={isDone(t) ? { textDecoration: "line-through" } : undefined}
+                >
+                  {isDone(t) && (
+                    <span aria-hidden style={{ color: "var(--c-green)" }}>
+                      ✓{" "}
+                    </span>
+                  )}
+                  {t.title}
+                </span>
                 <span className="text-xs" style={{ color: "var(--c-mute)" }}>
                   {t.owner}
                 </span>

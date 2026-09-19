@@ -27,12 +27,14 @@ import {
   fazYaz,
   kisiEkle,
   kadroYaz,
+  kisiselNotEkle,
+  kisiselNotSil,
   type Duzenlenebilir,
   type FazYaması,
   type KisiYaması,
   type YeniGorev,
 } from "./supabase/yaz";
-import type { Kisi, Note, Phase, Status, Task } from "./types";
+import type { Kisi, KisiselNot, Note, Phase, Status, Task } from "./types";
 
 export type Theme = "dark" | "light" | "system";
 
@@ -74,6 +76,9 @@ type Store = {
   fazGuncelle: (id: string, yama: FazYaması) => Promise<string | null>;
   fazOlustur: (girdi: { id: string; name: string; period: string; gate: string; sort: number }) => Promise<string | null>;
   kisiGuncelle: (ad: string, yama: KisiYaması) => Promise<string | null>;
+  kisiselNotlar: KisiselNot[];
+  notEkle: (icerik: string) => Promise<string | null>;
+  notKaldir: (id: string) => Promise<string | null>;
   kisiOlustur: (girdi: { display_name: string; color: string; sadece_sorumlu: boolean; sort: number }) => Promise<string | null>;
 };
 
@@ -86,6 +91,7 @@ export function StoreProvider({
   me: sunucudanMe,
   tasks: sunucudan,
   phases,
+  kisiselNotlar,
   children,
 }: {
   today: string;
@@ -93,6 +99,7 @@ export function StoreProvider({
   me: string;
   tasks: Task[];
   phases: Phase[];
+  kisiselNotlar: KisiselNot[];
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -324,15 +331,28 @@ export function StoreProvider({
     [yonetimIslemi],
   );
 
+  // Notlar iyimser güncellenmiyor: listeyi sunucu veriyor, id'yi veritabanı
+  // üretiyor. Realtime'da da değil (bkz. 0010) — tazeleme yazan kişide olur.
+  const notEkle = useCallback<Store["notEkle"]>(
+    (icerik) => yonetimIslemi(() => kisiselNotEkle(me, icerik)),
+    [yonetimIslemi, me],
+  );
+  const notKaldir = useCallback<Store["notKaldir"]>(
+    (id) => yonetimIslemi(() => kisiselNotSil(id)),
+    [yonetimIslemi],
+  );
+
   const value = useMemo<Store>(
     () => ({
       tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
       setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir, topluGorevEkle,
       fazGuncelle, fazOlustur, kisiGuncelle, kisiOlustur,
+      kisiselNotlar, notEkle, notKaldir,
     }),
     [tasks, phases, kadro, me, setMe, theme, setTheme, today, hata, hatayiKapat,
      setStatus, addNote, updateTask, addTask, removeTask, topluDegistir, topluKaldir, topluGorevEkle,
-     fazGuncelle, fazOlustur, kisiGuncelle, kisiOlustur],
+     fazGuncelle, fazOlustur, kisiGuncelle, kisiOlustur,
+     kisiselNotlar, notEkle, notKaldir],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -23,10 +23,11 @@ const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 
 const al = async (yol) => (await fetch(`${URL_}/rest/v1/${yol}`, { headers: H })).json();
 
-const tasks = await al("tasks?select=id,title,owner,phase_id,status,sirano,due_date");
+const tasks = await al("tasks?select=id,title,owner,phase_id,status,sirano,due_date,completed_at");
 const events = await al("task_events?select=id,task_id,kind,actor");
 const phases = await al("phases?select=id");
 const kadro = await al("kisiler?select=display_name,arsiv");
+const notlar = await al("notlar?select=id,kisi,icerik");
 
 const sorun = [];
 const fazIdler = new Set(phases.map((p) => p.id));
@@ -60,6 +61,18 @@ if (yabanci.length) sorun.push(`log'da kadro disi aktor: ${yabanci.join(", ")}`)
 const copluk = tasks.filter((t) => /^TEST/i.test(t.title ?? ""));
 if (copluk.length) sorun.push(`${copluk.length} TEST gorevi kalmis: ${copluk.map((t) => t.title).join(" | ")}`);
 
+// 5b) Bitmis gorevin bitis ani olmali (0011); Geçmiş görünümü buna dayaniyor.
+const bitisSiz = tasks.filter((t) => t.status === "Yapıldı" && !t.completed_at);
+if (bitisSiz.length)
+  sorun.push(`${bitisSiz.length} bitmis gorevde completed_at yok: ${bitisSiz.map((t) => t.title).join(" | ")}`);
+
+// 5c) Kadroda olmayan kisiye ait not (elle silinmis kisi vb.)
+const adlar = new Set(kadro.map((k) => k.display_name));
+const sahipsizNot = notlar.filter((n) => !adlar.has(n.kisi));
+if (sahipsizNot.length) sorun.push(`${sahipsizNot.length} not kadro disi kisiye ait`);
+const testNot = notlar.filter((n) => /TEST/i.test(n.icerik ?? ""));
+if (testNot.length) sorun.push(`${testNot.length} TEST notu kalmis`);
+
 // 6) Supabase denetçisi
 let advisor = "atlandi (SUPABASE_ACCESS_TOKEN yok)";
 if (PAT && REF) {
@@ -77,7 +90,7 @@ if (PAT && REF) {
   if (ls.length) sorun.push(`advisors: ${advisor}`);
 }
 
-console.log(`gorev: ${tasks.length} · log: ${events.length} · faz: ${phases.length} · kadro: ${kadro.length}`);
+console.log(`gorev: ${tasks.length} · log: ${events.length} · faz: ${phases.length} · kadro: ${kadro.length} · not: ${notlar.length}`);
 console.log(`advisors(security): ${advisor}`);
 if (sorun.length) {
   console.log(`\n${sorun.length} SORUN:`);

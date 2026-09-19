@@ -51,8 +51,10 @@ await p.getByLabel("Toplantı notu").fill(`${ET} yunus @Yunus`);
 await p.waitForTimeout(300);
 ok("aktif kadro ismi tanınıyor", (await p.getByText(/kimse ile eşleşmedi/).count()) === 0);
 await p.locator('button:text-is("1 görevi ekle")').click();
-await p.waitForURL("**/gorevler");
-await p.waitForTimeout(1500);
+// Toplanti notu artik /gorevler'e yonlendirmiyor (toplantida sirayla kisi
+// girebilmek icin sayfada kaliyor); onay satirini bekliyoruz.
+await p.getByText(/1 görev eklendi/).first().waitFor({ timeout: 15000 });
+await p.waitForTimeout(1200);
 {
   const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

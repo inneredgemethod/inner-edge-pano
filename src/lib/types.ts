@@ -89,6 +89,21 @@ export type Task = {
   createdBy?: string;
   /** Doluysa "Yapıldı" işaretlenince bir sonraki kopya üretilir (0009). */
   tekrar?: Tekrar;
+  /** ISO 8601 — "Yapıldı"ya geçtiği an; Geçmiş görünümü buna göre gruplar (0011). */
+  bitisAni?: string;
+};
+
+/**
+ * Kişisel not (0010).
+ *
+ * ⚠ `kisi` bir FİLTRE, erişim sınırı DEĞİL: tek paylaşılan hesap modelinde
+ * şifreyi bilen herkes tüm notları okuyabilir. Arayüz bunu yazıyor.
+ */
+export type KisiselNot = {
+  id: string;
+  kisi: string;
+  icerik: string;
+  created_at: string;
 };
 
 export type Phase = {

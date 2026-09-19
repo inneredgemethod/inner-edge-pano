@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { GecmisGorunumu } from "@/components/GecmisGorunumu";
 import { HaftaGorunumu } from "@/components/HaftaGorunumu";
 import { PhaseStrip } from "@/components/PhaseStrip";
 import { TakvimGorunumu } from "@/components/TakvimGorunumu";
@@ -17,6 +18,7 @@ const GORUNUM_ETIKETI: Record<Gorunum, string> = {
   liste: "Liste",
   hafta: "Hafta",
   takvim: "Takvim",
+  gecmis: "Geçmiş",
 };
 
 function Gorevler() {
@@ -51,7 +53,13 @@ function Gorevler() {
   const girenIsimler = girenler.map((k) => k.display_name);
   const now = currentPhase(phases, today);
 
-  const visible = filtreyiUygula(tasks, filtre, { today, girenIsimler });
+  // Geçmiş görünümü zaten yalnızca bitmiş görevleri listeliyor; "Yapılanları
+  // gizle" açık kalmışsa sekme boş görünürdü. O iki filtre burada devre dışı.
+  const etkinFiltre =
+    filtre.gorunum === "gecmis"
+      ? { ...filtre, bitenleriGizle: false, sadeceAcik: false }
+      : filtre;
+  const visible = filtreyiUygula(tasks, etkinFiltre, { today, girenIsimler });
 
   const gorunurIdler = visible.map((t) => t.id);
   const hepsiSecili = gorunurIdler.length > 0 && gorunurIdler.every((id) => secililer.has(id));
@@ -211,6 +219,8 @@ function Gorevler() {
           onOpen={acGorev}
         />
       )}
+
+      {filtre.gorunum === "gecmis" && <GecmisGorunumu tasks={visible} onOpen={acGorev} />}
 
       {filtre.gorunum === "takvim" && (
         <TakvimGorunumu

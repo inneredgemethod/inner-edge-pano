@@ -82,8 +82,10 @@ await y.locator('dialog button:text-is("Kapat")').click();
 {
   const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const olaylar = await (await fetch(`${URL_}/rest/v1/task_events?select=kind,body,actor&kind=eq.status`,
+  const olaylar = await (await fetch(`${URL_}/rest/v1/task_events?select=kind,body,actor,created_at&kind=eq.status&order=created_at.asc`,
     { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } })).json();
+  // ORDER ZORUNLU: PostgREST siralamasiz rastgele donuyor ve ".at(-1)" bazen
+  // bir onceki adimin (Kürşad'in) kaydini yakaliyordu.
   const sonu = olaylar.at(-1);
   ok(`log Yunus adına yazıldı (${sonu?.body} — ${sonu?.actor})`, sonu?.actor === "Yunus");
 }
@@ -107,6 +109,8 @@ await y.locator('dialog button:text-is("Kapat")').click();
 // 8) Silme kalıcı
 await ac(k, GOREV);
 await k.locator('dialog button:text-is("Sil")').click();
+// Silme artik iki adimli: "Sil" onay satirini aciyor, "Evet, sil" uyguluyor.
+await k.locator('dialog button:text-is("Evet, sil")').click();
 await k.waitForTimeout(1500);
 await k.reload({ waitUntil: "networkidle" });
 ok("silinen görev geri gelmiyor", (await k.getByText(GOREV).count()) === 0);
