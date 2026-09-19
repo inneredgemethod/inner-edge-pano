@@ -45,8 +45,11 @@ Her faz: plan → Kürşad onayı → yap → Kürşad'a göster → commit. Bir
 - K6 kaldırıldı: herkes her görevi düzenler/siler (log kim yaptığını yazmaya devam ediyor)
 - Geciken görev kırmızı çerçeve; faz kartında doluluk çubuğu
 
-**Paket B (sırada):** hafta/ay görünümü, tarihten otomatik gruplama, arama, JSON dışa/içe aktarma.
-**Paket C:** toplantı sonrasına — tekrarlayan görevler, şablonlar, faz yönetimi, kadro yönetimi.
+**Kontrol Noktası 1 (yapıldı):** kadro veritabanına taşındı (`allowed_users` → `kisiler`), zaman grupları hedef tarihten türüyor (`week_label` kalktı), Liste/Hafta/Takvim görünümleri, arama, URL'de filtreler, "Bu hafta" özet kartı.
+
+**Kontrol Noktası 2 (yapıldı):** Ayarlar'da faz ve kişi yönetimi (arşiv temelli, silme yok), tekrarlayan görev (Yapıldı işaretlenince sonrakini üretir), iki görev şablonu, JSON dışa/içe aktarma.
+
+**Yapılmayanlar:** haftalık e-posta özeti, migration konsolidasyonu, takvimde sürükle-bırak, şablon düzenleme ekranı, kişi adı değiştirme.
 
 ---
 

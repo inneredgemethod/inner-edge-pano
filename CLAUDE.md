@@ -85,6 +85,15 @@ Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim 
 Hepsi `PANO_URL` ile çalışır. **Dev sunucusunda koşma** — geliştirici rozeti tıklamaları yiyor.
 Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; temizlik satırını silme.
 
+## Yönetim kuralları (Faz 5 · Kontrol Noktası 2)
+- **Faz ve kişi SİLİNMEZ, arşivlenir.** `tasks.phase_id` fazlara foreign key ile bağlı; `tasks.owner`, `tasks.created_by`, `task_events.actor` kişi adını düz metin tutuyor. Silme, görevleri kırar ya da sahipsiz bırakır.
+- **Kişi adı değiştirilemez** — aynı sebep. Gerekirse arşivle + yeni kişi ekle.
+- **Yeni kişi varsayılanı `sadece_sorumlu = true`** (panoya giremez). Yanlışlıkla erişim vermek, yanlışlıkla vermemekten pahalı.
+- **Arşivli sorumlu, görevin kendi menüsünde kalır** (`sorumluSecenekleri`). Yoksa `<select>` karşılığı olmayan bir değere bakar, tarayıcı ilk seçeneği gösterir ve kullanıcı başka bir alanı düzenlerken sorumluyu sessizce değiştirir. **Yaşandı.**
+- **Tekrarlayan görev trigger'ında iki kat koruma var** (`0009`): yalnızca "başka durumdan Yapıldı'ya" geçişte, ve aynı başlık+tarihte görev yoksa. Biri kaldırılırsa "Yapıldı → Bekliyor → Yapıldı" çift kopya üretir.
+- **İçe aktarma yalnızca EKLER.** "Panoyu sıfırla" zaten var; ikinci bir yıkıcı yol koyma.
+- **Testler kendi ürettiklerini siler, başkasını değil.** `tests/yonetim.mjs` başlangıçtaki görev kimliklerini not edip yalnızca yenileri temizliyor. "created_by = X olanı sil" gibi geniş filtreler Kürşad'ın gerçek görevlerini silerdi.
+
 ## Toplu işlemler ve sıfırlama (Faz 5)
 - **Toplu güncelleme her satır için ayrı log üretir.** 10 görevin sorumlusunu değiştirmek 10 `task_events` satırı demek — bilerek böyle, "kim neyi değiştirdi" tek tek kalsın.
 - **Açıklama alanları (`what`/`why`/`done_when`) LOGLANMAZ.** Metin düzeltmesi her seferinde "X bir şey değiştirdi" satırı üretirse not akışı okunmaz olur.
