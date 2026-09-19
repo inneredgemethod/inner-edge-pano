@@ -13,9 +13,12 @@ import { TaskRow } from "./TaskRow";
 export function GecmisGorunumu({
   tasks,
   onOpen,
+  filtreVar = false,
 }: {
   tasks: Task[];
   onOpen: (t: Task) => void;
+  /** Arama/kişi/faz filtresi açıksa boş liste "hiç bitmedi" demek DEĞİLDİR. */
+  filtreVar?: boolean;
 }) {
   const gruplar = tamamlananGruplari(tasks);
   const toplam = gruplar.reduce((n, g) => n + g.tasks.length, 0);
@@ -23,8 +26,9 @@ export function GecmisGorunumu({
   if (toplam === 0) {
     return (
       <p className="mt-6 text-[13px]" style={{ color: "var(--c-mute)" }}>
-        Henüz tamamlanmış görev yok. Bir görevi soldaki ✓ ile bitirdiğinde burada
-        tarihiyle birlikte görünecek.
+        {filtreVar
+          ? "Bu filtreye uyan tamamlanmış görev yok. Aramayı veya kişi/faz filtresini temizleyip tekrar bak."
+          : "Henüz tamamlanmış görev yok. Bir görevi soldaki ✓ ile bitirdiğinde burada tarihiyle birlikte görünecek."}
       </p>
     );
   }

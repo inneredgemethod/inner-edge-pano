@@ -81,7 +81,7 @@ export function GirisFormu({ kadro, seciliKisi }: { kadro: string[]; seciliKisi:
       <button
         type="submit"
         disabled={gonderiliyor}
-        className="rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
+        className="rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
         style={{ background: "var(--c-teal)", color: "var(--c-teal-ink)" }}
       >
         {gonderiliyor ? "Giriliyor…" : "Panoya gir"}

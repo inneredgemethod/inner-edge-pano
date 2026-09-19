@@ -149,7 +149,7 @@ export default function Ayarlar() {
             type="button"
             disabled={onayMetni.trim() !== ONAY_KELIMESI || calisiyor}
             onClick={sifirla}
-            className="rounded-lg px-3 py-1.5 text-sm font-semibold disabled:opacity-40"
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
             style={{ background: "var(--c-red)", color: "#fff" }}
           >
             {calisiyor ? "Siliniyor…" : "Yedekle ve sıfırla"}

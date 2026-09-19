@@ -25,6 +25,8 @@ export function HaftaGorunumu({
   const gunun = (g: string) => tasks.filter((t) => t.due === g);
   const tarihsiz = tasks.filter((t) => !t.due);
 
+  const haftaBos = gunler.every((g) => gunun(g).length === 0);
+
   return (
     <>
       <div className="mt-3 flex items-center gap-2">
@@ -60,6 +62,13 @@ export function HaftaGorunumu({
           </button>
         )}
       </div>
+
+      {haftaBos && (
+        <p className="mt-3 text-[13px]" style={{ color: "var(--c-mute)" }}>
+          Bu haftaya tarihlenmiş görev yok. Oklarla başka bir haftaya geçebilir ya da
+          Liste görünümünde tarihsiz görevlere bakabilirsin.
+        </p>
+      )}
 
       <div className="mt-3 grid gap-2 md:grid-cols-7">
         {gunler.map((g) => {

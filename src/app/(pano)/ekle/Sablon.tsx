@@ -162,7 +162,7 @@ export function Sablon() {
         type="button"
         onClick={uygula}
         disabled={kaydediliyor}
-        className="mt-4 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60"
+        className="mt-4 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
         style={{ background: "var(--c-teal)", color: "var(--c-teal-ink)" }}
       >
         {kaydediliyor ? "Ekleniyor…" : `${satirlar.length} görevi ekle`}

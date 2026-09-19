@@ -86,7 +86,7 @@ Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim 
 ## Test
 `npm run test:sunucu` temiz bir production sunucusu başlatır (3002), sonra:
 `npm run test:giris` · `npm run test:etkilesim` · `npm run test:kalicilik` · `npm run test:yarin` · `npm run test:ekran`.
-Toplam **11 paket, 185 kontrol** + 32 ekran görüntüsü.
+Toplam **11 paket, 192 kontrol** + 32 ekran görüntüsü.
 
 **Seçici tuzakları — yaşandı, tekrar düşme:**
 - `getByLabel("X")` GEVŞEK eşleşir. Satır eylem düğmelerinin `aria-label`'ı görev
@@ -117,6 +117,15 @@ Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; tem
 - **Notlar gerçekten gizli DEĞİL** (0010). `kisi` sütunu filtredir, sınır değil — tek paylaşılan
   hesap modelinde RLS kişiyi ayırt edemez. Arayüz bunu kullanıcıya yazıyor; o cümleyi silme.
 - **`notlar` Realtime'a eklenmedi** — her not yazımında herkesin panosu tazelenirdi.
+- **Görevler sayfasında filtre URL'den İKİ YÖNLÜ okunuyor.** Sadece `useState` başlangıç
+  değeri olarak okunsaydı, `/gorevler?faz=B` ekranındayken alt menüden "Görevler"e dokunmak
+  aynı route olduğu için bileşeni yeniden kurmaz, filtre eski kalır ve yazma effect'i adresi
+  geri `?faz=B` yapardı — sekme hiçbir şey yapmamış gibi görünürdü. İki effect'in birbirini
+  tetiklememesi `yazdigimiz` ref'ine dayanıyor; onu kaldırma. **Yaşandı.**
+- **Üst çubuk `flex-wrap`, ama `?`/`⚙` düğmelerine `min-w` VERİLMEZ.** Genişlik eklemek
+  telefonda çubuğu ikinci satıra düşürüyor ve her ekranda dikey yer yiyor. Yükseklik
+  (`min-h-[2.5rem]`) yeterli.
+- **`disabled:opacity` tek değerde: 50.** Dört farklı değer vardı.
 
 ## Yönetim kuralları (Faz 5 · Kontrol Noktası 2)
 - **Faz ve kişi SİLİNMEZ, arşivlenir.** `tasks.phase_id` fazlara foreign key ile bağlı; `tasks.owner`, `tasks.created_by`, `task_events.actor` kişi adını düz metin tutuyor. Silme, görevleri kırar ya da sahipsiz bırakır.
@@ -151,7 +160,7 @@ Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi baz
 ### Canlı durum
 - **https://inneredgepanel.vercel.app** · eski adres **https://inner-edge-pano.vercel.app** de çalışıyor
 - Ekip şifresi: `innerteam2026` · giriş sonrası üstteki "Ben:" menüsünden kişi seçiliyor
-- **185 test geçiyor** (11 paket) · 32 ekran görüntüsü, yatay taşma 0, konsol temiz
+- **192 test geçiyor** (11 paket) · 32 ekran görüntüsü, yatay taşma 0, konsol temiz
 - Pano sağlıklı: 37 demo görev, 5 faz, 6 kişi (3'ü arşivde), 0 kişisel not
 
 ### Bu oturumda bitenler (hepsi canlıda)
@@ -165,6 +174,16 @@ Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi baz
    görevler ✓ ve üstü çizili.
 6. **`/nasil-kullanilir`** — ekip için kullanım kılavuzu; üstte "?" ve ana sayfada kart.
 
+### 19 Eylül · son tur (A + B)
+- **Genel Bakış kişiselleştirildi:** stats altında `{me}, açık görevlerin` — geciken önce,
+  sonra en yakın tarihli, en fazla 5 satır, `Tümünü gör → /gorevler?kisi={me}`.
+  Satırlar mevcut `TaskRow`; "Benim" sayfası değişmedi.
+- **Demo öncesi tarama:** `TekGorev` arşivli faza sessizce yazıyordu (düzeltildi) · Geçmiş
+  filtre boş dönünce "hiç tamamlanmadı" diyordu (düzeltildi) · `HataBandi` uzun hata
+  metninde sayfayı yatay kaydırıyordu · `TopluCubuk` çentikli telefonda alt menüye
+  biniyordu · üst çubuk uzun isimde taşıyordu · beş ekranda eksik boş-durum mesajı ·
+  dokunma hedefleri 40px'e çıkarıldı · `disabled:opacity` tek değerde birleşti.
+
 ### Yarım kalan / bilinen durum
 - ~~"Panoyu Sıfırla" test edilmedi~~ → **19 Eylül'de canlıda GERÇEKTEN çalıştırıldı ve doğrulandı:**
   37 → 0, silmeden önce yedek indi, yanlış onay kelimesiyle düğme kapalı kalıyor. Ardından
@@ -173,6 +192,17 @@ Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi baz
 - **Geçmiş sekmesi şu an boş**: testler bütün görev durumlarını "Bekliyor"a çekiyor. İlk görev
   bitirildiğinde dolar — tanıtımda canlı göstermek için iyi bir an.
 - Demo verisi (37 görev) bilerek duruyor. Toplantıda Ayarlar → Panoyu Sıfırla ile temizlenecek.
+
+### Sonraki oturumda bakılacak (bilerek ertelendi)
+Demo arifesinde dokunulmadı, hiçbiri günlük kullanımı engellemiyor:
+- `store.tsx` › `iyimser`: iki hızlı iyimser yazmadan biri başarısız olursa diğerinin
+  değişikliği de geri alınıyor.
+- `store.tsx`: her yazma kendi Realtime olayını tetikleyip `router.refresh()` ile iyimser
+  state'i eziyor — çok hızlı tıklamada kutucuk geri sekebilir.
+- `TaskDetail`: açıklama taslağı yalnızca `taskId` değişince sıfırlanıyor; düzenleme
+  sırasında gelen Realtime değişikliği "Kaydet"te eziliyor.
+- `FazYonetimi`: faz sırası iki ayrı `await` ile takas ediliyor, ikincisi düşerse sıra belirsiz.
+- Buton dolgu çeşitliliği (`px-2.5`/`px-3`/`px-4`) bilerek bırakıldı.
 
 ### Açık konu — Kürşad istedi
 **Kişi bazlı gerçek giriş modeli.** Bugünkü tek paylaşılan şifre yüzünden (a) "kim yaptı" bilgisi

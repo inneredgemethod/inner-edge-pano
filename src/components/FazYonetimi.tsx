@@ -52,6 +52,12 @@ export function FazYonetimi() {
         Silme yok — arşivlenen faz menülerde görünmez ama görevleri bozulmaz.
       </p>
 
+      {aktif.length === 0 && (
+        <p className="mb-2 text-[13px]" style={{ color: "var(--c-mute)" }}>
+          Aktif faz yok. Aşağıdan yeni bir faz ekle ya da arşivdekini geri al.
+        </p>
+      )}
+
       {aktif.map((p, i) => (
         <div key={p.id} className="mb-1.5 rounded-lg border p-2.5" style={{ borderColor: "var(--c-line)" }}>
           {duzenlenen === p.id ? (
@@ -120,7 +126,7 @@ export function FazYonetimi() {
                   onClick={() => siraDegistir(p, -1)}
                   disabled={i === 0 || calisiyor}
                   aria-label={`${p.n} yukarı`}
-                  className="rounded border px-2 py-1 text-xs disabled:opacity-30"
+                  className="min-h-[2.5rem] min-w-[2.25rem] rounded border px-2 text-xs disabled:opacity-50"
                   style={{ borderColor: "var(--c-line)" }}
                 >
                   ↑
@@ -130,7 +136,7 @@ export function FazYonetimi() {
                   onClick={() => siraDegistir(p, 1)}
                   disabled={i === aktif.length - 1 || calisiyor}
                   aria-label={`${p.n} aşağı`}
-                  className="rounded border px-2 py-1 text-xs disabled:opacity-30"
+                  className="min-h-[2.5rem] min-w-[2.25rem] rounded border px-2 text-xs disabled:opacity-50"
                   style={{ borderColor: "var(--c-line)" }}
                 >
                   ↓

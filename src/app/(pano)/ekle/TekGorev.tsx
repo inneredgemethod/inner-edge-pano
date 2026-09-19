@@ -12,7 +12,11 @@ export function TekGorev() {
 
   const [title, setTitle] = useState("");
   const [owner, setOwner] = useState<string>(me);
-  const [phase, setPhase] = useState(currentPhase(phases, today)?.id ?? phases[0]?.id ?? "A");
+  // aktifFazlar ZORUNLU: <select> yalnizca aktifleri listeliyor. Icinde
+  // bulundugumuz faz arsivliyse tarayici ilk secenegi gosterir ama state
+  // arsivli id'yi tutar ve gorev sessizce arsivli faza yazilir.
+  const aktif = aktifFazlar(phases);
+  const [phase, setPhase] = useState(currentPhase(aktif, today)?.id ?? aktif[0]?.id ?? "A");
   const [due, setDue] = useState("");
   const [what, setWhat] = useState("");
   const [why, setWhy] = useState("");
@@ -134,7 +138,7 @@ export function TekGorev() {
         <button
           type="submit"
           disabled={kaydediliyor}
-          className="justify-self-start rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60"
+          className="justify-self-start rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
           style={{ background: "var(--c-teal)", color: "var(--c-teal-ink)" }}
         >
           {kaydediliyor ? "Ekleniyor…" : "Ekle"}

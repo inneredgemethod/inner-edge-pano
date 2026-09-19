@@ -49,7 +49,9 @@ export function TopBar() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        {/* flex-wrap ZORUNLU: bu kumedeki <select>'in genisligi kisi adindan
+          geliyor ve uzun bir ad 390px'te sayfayi yatay kaydiriyordu. */}
+        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
           <label className="flex items-center gap-1.5 text-xs" style={{ color: "var(--c-mute)" }}>
             Ben:
             <select
@@ -72,12 +74,12 @@ export function TopBar() {
 
           {/* Alt menüye 5. sekme EKLENMEDİ: grid-cols-4'ü bozmak telefonda
               dört sekmeyi de daraltır ve 4.25rem yüksekliğe bağlı üç ayrı yer
-              (globals.css body padding, TopluCubuk'un bottom-[4.25rem]) kırılır. */}
+              (globals.css body padding, TopluCubuk'un alt konumu) kırılır. */}
           <Link
             href="/nasil-kullanilir"
             aria-label="Nasıl kullanılır"
             title="Nasıl kullanılır"
-            className="rounded-lg border px-2.5 py-1 text-sm"
+            className="grid min-h-[2.5rem] place-items-center rounded-lg border px-2.5 text-sm"
             style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
           >
             ?
@@ -87,7 +89,7 @@ export function TopBar() {
             href="/ayarlar"
             aria-label="Ayarlar"
             title="Ayarlar"
-            className="rounded-lg border px-2.5 py-1 text-sm"
+            className="grid min-h-[2.5rem] place-items-center rounded-lg border px-2.5 text-sm"
             style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
           >
             ⚙
@@ -96,7 +98,7 @@ export function TopBar() {
           <form action="/cikis" method="post">
             <button
               type="submit"
-              className="rounded-lg border px-2.5 py-1 text-xs"
+              className="min-h-[2.5rem] rounded-lg border px-2.5 py-1 text-xs"
               style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
             >
               Çıkış

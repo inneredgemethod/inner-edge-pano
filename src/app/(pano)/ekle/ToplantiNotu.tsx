@@ -256,7 +256,7 @@ export function ToplantiNotu() {
             type="button"
             onClick={ekle}
             disabled={eklenebilir.length === 0 || kaydediliyor}
-            className="mt-4 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60"
+            className="mt-4 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
             style={{ background: "var(--c-teal)", color: "var(--c-teal-ink)" }}
           >
             {kaydediliyor ? "Ekleniyor…" : `${eklenebilir.length} görevi ekle`}

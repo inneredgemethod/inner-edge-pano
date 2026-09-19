@@ -78,6 +78,12 @@ export function KisiYonetimi() {
         ve kayıtlar adı metin olarak tutuyor.
       </p>
 
+      {aktif.length === 0 && (
+        <p className="mb-2 text-[13px]" style={{ color: "var(--c-mute)" }}>
+          Aktif kişi yok. Aşağıdan yeni kişi ekle ya da arşivdekini geri al.
+        </p>
+      )}
+
       {aktif.map((k) => satir(k, false))}
 
       {arsivli.length > 0 && (

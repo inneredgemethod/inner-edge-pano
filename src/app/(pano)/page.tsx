@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AcikGorevlerim } from "@/components/AcikGorevlerim";
 import { BuHaftaKarti } from "@/components/BuHaftaKarti";
 import { PhaseStrip } from "@/components/PhaseStrip";
 import { currentPhase, overview } from "@/lib/data";
@@ -26,10 +27,10 @@ export default function GenelBakis() {
 
       <Link
         href="/nasil-kullanilir"
-        className="mb-3 flex items-center gap-2 rounded-lg border px-3.5 py-2.5 text-sm"
+        className="mb-3 flex items-start gap-2 rounded-lg border px-3.5 py-2.5 text-sm"
         style={{ background: "var(--c-bg2)", borderColor: "var(--c-teal)", color: "var(--c-teal)" }}
       >
-        <span aria-hidden>❓</span>
+        <span aria-hidden className="shrink-0">❓</span>
         Panoyu ilk kez mi kullanıyorsun? → Nasıl kullanılır
       </Link>
 
@@ -59,6 +60,8 @@ export default function GenelBakis() {
           </div>
         ))}
       </div>
+
+      <AcikGorevlerim />
 
       <BuHaftaKarti />
 

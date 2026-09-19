@@ -133,6 +133,50 @@ await p.locator('dialog button:text-is("Notu sil")').click();
 await p.waitForTimeout(2000);
 ok("not silindi", (await dbAl(`notlar?select=id&icerik=eq.${encodeURIComponent(NOT)}`)).length === 0);
 
+// ============ A: Genel Bakis'ta "acik gorevlerin" ============
+// Testin kendi gorevi: Kürşad'a ait, GECIKMIS. Listenin basinda cikmali.
+const GECIKEN = `${ET} geciken`;
+// Sabit ve COK eski tarih: tohum gorevleri de gecikmis, "en cok gecikmis
+// basta" kuralini belirleyici sekilde sinamak icin hepsinden eski olmali.
+await fetch(`${URL_}/rest/v1/tasks`, {
+  method: "POST", headers: H,
+  body: JSON.stringify({ phase_id: "A", title: GECIKEN, owner: "Kürşad", due_date: "2020-01-01" }),
+});
+await p.locator("header select").first().selectOption("Kürşad");
+await p.waitForTimeout(1500);
+await p.goto(`${BASE}/`, { waitUntil: "networkidle" });
+ok("bolum secili kisiyi gosteriyor",
+   await p.getByRole("heading", { name: /Kürşad, açık görevlerin/ }).isVisible());
+ok("geciken sayisi baslikta", await p.getByText(/geciken/).first().isVisible());
+{
+  // TaskRow'un govde butonlari; ilki listenin ilk satiri.
+  const ilk = await p.locator("section:has(h2:text-matches('açık görevlerin')) button[aria-label$='— sil']")
+    .first().getAttribute("aria-label");
+  ok(`en cok gecikmis gorev listenin basinda (${ilk})`, ilk === `${GECIKEN} — sil`);
+}
+ok('"Tümünü gör" dogru filtreye gidiyor',
+   (await p.locator(`a[href="/gorevler?kisi=${encodeURIComponent("Kürşad")}"]`).count()) > 0);
+
+await p.locator("header select").first().selectOption("Sarah");
+await p.waitForTimeout(2000);
+ok("kisi degisince bolum de degisti",
+   await p.getByRole("heading", { name: /Sarah, açık görevlerin/ }).isVisible());
+// Kapsam BOLUME daraltildi: "Bu hafta" karti gecikmisleri de listeliyor,
+// yani gorev sayfanin baska bir yerinde hakli olarak duruyor.
+ok("Kürşad'in gorevi Sarah'in bolumunde yok",
+   (await p.locator("section:has(h2:text-matches('açık görevlerin'))")
+      .getByText(GECIKEN).count()) === 0);
+await p.locator("header select").first().selectOption("Kürşad");
+await p.waitForTimeout(1500);
+
+// ============ B2: alt menuden "Görevler" filtreyi gercekten temizliyor ============
+await p.goto(`${BASE}/gorevler?faz=B`, { waitUntil: "networkidle" });
+await p.waitForTimeout(600);
+await p.locator('nav[aria-label="Alt sekme çubuğu"] a[href="/gorevler"]').click();
+await p.waitForTimeout(1200);
+ok(`"Görevler" sekmesi filtreyi temizledi (${new URL(p.url()).search || "(bos)"})`,
+   new URL(p.url()).search === "");
+
 // ============ P6: Nasıl kullanılır ============
 await p.goto(`${BASE}/nasil-kullanilir`, { waitUntil: "networkidle" });
 ok("Nasıl kullanılır açıldı", await p.getByRole("heading", { name: "Nasıl kullanılır" }).isVisible());

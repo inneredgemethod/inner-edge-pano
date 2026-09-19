@@ -90,6 +90,13 @@ export function TakvimGorunumu({
         ))}
       </div>
 
+      {tasks.length === 0 && (
+        <p className="mt-3 text-[13px]" style={{ color: "var(--c-mute)" }}>
+          Bu görünümde hiç görev yok. Oklarla başka bir aya geçebilir ya da üstteki
+          filtreleri temizleyebilirsin.
+        </p>
+      )}
+
       <div className="mt-1 grid grid-cols-7 gap-1">
         {gunler.map((g) => {
           const gorevler = gunun(g);

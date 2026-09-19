@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GecmisGorunumu } from "@/components/GecmisGorunumu";
 import { HaftaGorunumu } from "@/components/HaftaGorunumu";
@@ -36,12 +36,33 @@ function Gorevler() {
     filtreyiOku(new URLSearchParams(params.toString())),
   );
 
+  // Adrese en son BİZİM yazdığımız sorgu dizesi. Aşağıdaki iki effect'in
+  // birbirini tetiklememesi buna dayanıyor.
+  const yazdigimiz = useRef<string | null>(null);
+
   useEffect(() => {
-    const yeni = `${pathname}${filtreyiYaz(filtre)}`;
+    const qs = filtreyiYaz(filtre);
+    yazdigimiz.current = qs;
+    const yeni = `${pathname}${qs}`;
     if (yeni !== window.location.pathname + window.location.search) {
       window.history.replaceState(null, "", yeni);
     }
   }, [filtre, pathname]);
+
+  // URL -> state. Bu olmadan filtre adresten YALNIZCA BİR KEZ okunuyordu:
+  // /gorevler?faz=B ekranındayken alt menüden "Görevler"e dokunmak aynı route
+  // olduğu için bileşeni yeniden kurmuyor, `filtre` eski kalıyor ve yukarıdaki
+  // effect adresi geri ?faz=B yapıyordu — sekme hiçbir şey yapmamış gibi
+  // görünüyordu. Aynı şey ana sayfadaki "Tümünü gör" bağlantısı için de geçerli.
+  useEffect(() => {
+    const gelen = params.toString();
+    const gelenQs = gelen ? `?${gelen}` : "";
+    // null: henüz hiç yazmadık (ilk render) — state zaten URL'den okundu.
+    if (yazdigimiz.current !== null && gelenQs !== yazdigimiz.current) {
+      yazdigimiz.current = gelenQs;
+      setFiltre(filtreyiOku(new URLSearchParams(gelen)));
+    }
+  }, [params]);
 
   const guncelle = (yama: Partial<Filtre>) => setFiltre((f) => ({ ...f, ...yama }));
 
@@ -60,6 +81,10 @@ function Gorevler() {
       ? { ...filtre, bitenleriGizle: false, sadeceAcik: false }
       : filtre;
   const visible = filtreyiUygula(tasks, etkinFiltre, { today, girenIsimler });
+  // Boş listelerin doğru mesajı verebilmesi için: görünüm ve demir tarih
+  // dışında herhangi bir filtre açık mı?
+  const filtreliMi =
+    !!filtre.faz || !!filtre.kisi || !!filtre.q.trim() || filtre.bitenleriGizle || filtre.sadeceAcik;
 
   const gorunurIdler = visible.map((t) => t.id);
   const hepsiSecili = gorunurIdler.length > 0 && gorunurIdler.every((id) => secililer.has(id));
@@ -98,7 +123,7 @@ function Gorevler() {
                 type="button"
                 onClick={() => guncelle({ gorunum: g })}
                 aria-pressed={on}
-                className="rounded-lg border px-2.5 py-1 text-[13px]"
+                className="min-h-[2.5rem] rounded-lg border px-2.5 py-1 text-[13px]"
                 style={{
                   borderColor: on ? "var(--c-teal)" : "var(--c-line)",
                   color: on ? "var(--c-teal)" : "var(--c-mute)",
@@ -170,7 +195,7 @@ function Gorevler() {
             type="button"
             onClick={() => (secimModu ? secimiKapat() : setSecimModu(true))}
             aria-pressed={secimModu}
-            className="rounded-lg border px-2.5 py-1 text-[13px]"
+            className="min-h-[2.5rem] rounded-lg border px-2.5 py-1 text-[13px]"
             style={{
               borderColor: secimModu ? "var(--c-teal)" : "var(--c-line)",
               color: secimModu ? "var(--c-teal)" : "var(--c-mute)",
@@ -204,6 +229,11 @@ function Gorevler() {
             secimModu={secimModu}
             secililer={secililer}
             onSec={secToggle}
+            empty={
+              filtreliMi
+                ? "Bu filtrede görev yok. Aramayı veya kişi/faz seçimini temizle."
+                : "Panoda hiç görev yok. Alttaki ＋ Ekle sekmesinden ilk görevi ekleyebilirsin."
+            }
           />
 
           {/* Alt çubuk içeriği örtmesin. */}
@@ -220,7 +250,9 @@ function Gorevler() {
         />
       )}
 
-      {filtre.gorunum === "gecmis" && <GecmisGorunumu tasks={visible} onOpen={acGorev} />}
+      {filtre.gorunum === "gecmis" && (
+        <GecmisGorunumu tasks={visible} onOpen={acGorev} filtreVar={filtreliMi} />
+      )}
 
       {filtre.gorunum === "takvim" && (
         <TakvimGorunumu

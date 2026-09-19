@@ -38,11 +38,13 @@ export function TopluCubuk({
   return (
     <>
       <div
-        className="fixed inset-x-0 bottom-[4.25rem] z-30 border-t px-3 py-2.5 md:bottom-0"
+        className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 border-t px-3 py-2.5 md:bottom-0"
         style={{
           background: "var(--c-bg2)",
           borderColor: "var(--c-line)",
-          paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))",
+          // Cubuk artik ekranin dibinde degil (bottom hesabi guvenli alani
+          // zaten iceriyor); ikinci kez env() eklemek 34px olu bosluk yapardi.
+          paddingBottom: "0.625rem",
         }}
       >
         <div className="mx-auto max-w-5xl">
