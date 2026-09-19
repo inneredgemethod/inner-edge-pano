@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatDue, phaseOf } from "@/lib/data";
 import { useStore } from "@/lib/store";
-import { sorumluOlabilir, STATUSES, type Status } from "@/lib/types";
+import { sorumluSecenekleri, STATUSES, type Status } from "@/lib/types";
 import { StatusBadge } from "./Badges";
 
 /** Durum düğmesi seçiliyken alacağı renkler — örnek panodaki .stbtns kalıbı. */
@@ -185,9 +185,9 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
                 color: "var(--c-ink)",
               }}
             >
-              {sorumluOlabilir(kadro).map((k) => (
-                <option key={k.display_name} value={k.display_name}>
-                  {k.display_name}
+              {sorumluSecenekleri(kadro, task.owner).map((s) => (
+                <option key={s.deger} value={s.deger}>
+                  {s.etiket}
                 </option>
               ))}
             </select>

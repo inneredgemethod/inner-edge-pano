@@ -28,9 +28,12 @@ ok("kişi filtresi kadrodan geliyor",
 
 await p.locator("button", { hasText: "45 dakikalık toplantı" }).first().click();
 await p.waitForSelector("dialog[open]");
+// Menu sabit bir listeden degil, kadro tablosundan geliyor: arsivli kisiler
+// (Sibel/Emine/Ortak) burada YOK. Arsivli sorumlusu olan bir gorevin kendi
+// menusunde nasil davrandigi tests/arsiv.mjs'de.
 const sorumlular = await p.locator("dialog select").first().locator("option").allInnerTexts();
-ok(`sorumlu menüsünde 6 kişi (${sorumlular.join(",")})`,
-   sorumlular.length === 6 && sorumlular.includes("Sibel") && sorumlular.includes("Ortak"));
+ok(`sorumlu menüsü aktif kadrodan (${sorumlular.join(",")})`,
+   sorumlular.length === 3 && sorumlular.includes("Kürşad") && !sorumlular.includes("Sibel"));
 await p.locator('dialog button:text-is("Kapat")').click();
 
 // "Ben" menüsünde yalnızca panoya girenler olmalı
@@ -38,12 +41,15 @@ const benSecenekleri = await p.locator("header select").first().locator("option"
 ok(`"Ben" menüsünde sadece 3 kişi (${benSecenekleri.join(",")})`,
    benSecenekleri.length === 3 && !benSecenekleri.includes("Sibel"));
 
-// ---------- @Sibel artik calisiyor (duzelen hata) ----------
+// ---------- Ayristirici kadroyu VERITABANINDAN okuyor ----------
+// Bu, C2'de duzelen hatanin testi: eskiden sorumlu listeleri kodda sabitti ve
+// ayristirici yalnizca giris yapan 3 kisiyi taniyordu. Artik kaynak tek:
+// kisiler tablosu. (Arsivli isimlerin uyari vermesi tests/arsiv.mjs'de.)
 await p.goto(`${BASE}/ekle`, { waitUntil: "networkidle" });
 await p.locator('button:text-is("Toplantı notu")').click();
-await p.getByLabel("Toplantı notu").fill(`${ET} sibel @Sibel`);
-ok("@Sibel artık tanınıyor (uyarı yok)",
-   (await p.getByText(/kimse ile eşleşmedi/).count()) === 0);
+await p.getByLabel("Toplantı notu").fill(`${ET} yunus @Yunus`);
+await p.waitForTimeout(300);
+ok("aktif kadro ismi tanınıyor", (await p.getByText(/kimse ile eşleşmedi/).count()) === 0);
 await p.locator('button:text-is("1 görevi ekle")').click();
 await p.waitForURL("**/gorevler");
 await p.waitForTimeout(1500);
@@ -53,7 +59,7 @@ await p.waitForTimeout(1500);
   const r = await (await fetch(
     `${URL_}/rest/v1/tasks?select=title,owner&title=like.*${encodeURIComponent(ET)}*`,
     { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } })).json();
-  ok(`@Sibel sorumlu olarak kaydedildi (${r[0]?.owner})`, r[0]?.owner === "Sibel");
+  ok(`@Yunus sorumlu olarak kaydedildi (${r[0]?.owner})`, r[0]?.owner === "Yunus");
 }
 
 // ---------- Tarihten gruplama (B1) ----------

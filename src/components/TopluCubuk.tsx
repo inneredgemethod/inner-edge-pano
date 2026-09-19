@@ -98,6 +98,8 @@ export function TopluCubuk({
               style={alan}
             >
               <option value="">Sorumlu…</option>
+              {/* Burada mevcut sorumlu yok: toplu atama YENI bir sorumlu
+                  seciyor, arsivli birine atamanin anlami olmaz. */}
               {sorumluOlabilir(kadro).map((k) => (
                 <option key={k.display_name} value={k.display_name}>
                   {k.display_name}

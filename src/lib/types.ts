@@ -24,6 +24,26 @@ export function sorumluOlabilir(kadro: Kisi[]): Kisi[] {
   return kadro.filter((k) => !k.arsiv);
 }
 
+export type SorumluSecenegi = { deger: string; etiket: string; arsivde: boolean };
+
+/**
+ * Sorumlu menüsünün seçenekleri.
+ *
+ * `mevcutSahip` kadroda yoksa (kişi arşivlenmiş ya da kadrodan çıkarılmış)
+ * yine de listeye eklenir. Yoksa `<select>` karşılığı olmayan bir değere bakar,
+ * tarayıcı sessizce ilk seçeneği gösterir ve kullanıcı başka bir alanı
+ * düzenlerken görevin sorumlusunu farkında olmadan değiştirir.
+ */
+export function sorumluSecenekleri(kadro: Kisi[], mevcutSahip?: string): SorumluSecenegi[] {
+  const aktif = sorumluOlabilir(kadro).map((k) => ({
+    deger: k.display_name,
+    etiket: k.display_name,
+    arsivde: false,
+  }));
+  if (!mevcutSahip || aktif.some((s) => s.deger === mevcutSahip)) return aktif;
+  return [{ deger: mevcutSahip, etiket: `${mevcutSahip} (arşivde)`, arsivde: true }, ...aktif];
+}
+
 /** Panoya giren, yani "Ben" olarak seçilebilecek kişiler. */
 export function panoyaGirenler(kadro: Kisi[]): Kisi[] {
   return kadro.filter((k) => !k.arsiv && !k.sadece_sorumlu);
