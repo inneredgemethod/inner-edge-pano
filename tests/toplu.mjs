@@ -11,6 +11,15 @@ const ok = (n, c) => console.log(`${c ? "✓" : "✗ BASARISIZ"}  ${n}`);
 // bozuyor ve hata sanki burada varmis gibi gorunuyor.
 await db().temizle();
 
+// Baslangic sayisi VERITABANINDAN. Sabit 37 yazili olsaydi toplantidan sonra
+// gercek gorevler girilince bu paket kirmiziya donerdi.
+const _H = {
+  apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+};
+const oncesi = (await (await fetch(
+  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/tasks?select=id`, { headers: _H })).json()).length;
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage();
@@ -31,7 +40,7 @@ for (let i = 1; i <= 3; i++) {
 await p.goto(`${BASE}/gorevler`, { waitUntil: "networkidle" });
 const sayi = async () => Number((await p.getByText(/^\d+ görev$/).textContent()).split(" ")[0]);
 const basta = await sayi();
-ok(`3 test görevi eklendi (${basta})`, basta === 40);
+ok(`3 test görevi eklendi (${basta})`, basta === oncesi + 3);
 
 // Seçim modu
 await p.locator('button:text-is("Seç")').click();
@@ -94,7 +103,7 @@ await p.waitForSelector("dialog[open]");
 await p.locator('dialog button:text-is("3 görevi sil")').click();
 await p.waitForTimeout(1500);
 await p.reload({ waitUntil: "networkidle" });
-ok(`toplu silme çalıştı (${await sayi()})`, (await sayi()) === 37);
+ok(`toplu silme çalıştı (${await sayi()})`, (await sayi()) === oncesi);
 ok("seçim modu kapandı", (await p.locator('button:text-is("Seç")').count()) === 1);
 
 const { gorev, log } = await db().temizle();

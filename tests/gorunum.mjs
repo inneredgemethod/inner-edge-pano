@@ -85,9 +85,30 @@ await p.waitForTimeout(400);
 ok(`büyük harf/İ duyarsız (${await sayi()})`, (await sayi()) === aramaSonucu);
 
 // Aciklama icinde arama
-await p.getByLabel("Görevlerde ara").fill("stopaj");
-await p.waitForTimeout(400);
-ok(`açıklama içinde de arıyor (${await sayi()})`, (await sayi()) === 1);
+//
+// Eskiden bir TOHUM gorevinin aciklamasindaki "stopaj" kelimesi araniyordu.
+// Ekip o gorevi silince test kirildi — arama kendi ekledigi goreve dayanmali.
+{
+  const ARANAN = `zxq${Date.now().toString(36)}`;
+  // Gorev dogrudan veritabanina yaziliyor: arayuzden eklemek bir de
+  // router.refresh() beklemek demek ve arama ona yetisemiyordu.
+  await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/tasks`, {
+    method: "POST",
+    headers: {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      phase_id: "A", title: `${ET} aciklamali`, owner: "Kürşad",
+      what: `Icinde ${ARANAN} gecen aciklama.`,
+    }),
+  });
+  await p.goto(`${BASE}/gorevler`, { waitUntil: "networkidle" });
+  await p.getByLabel("Görevlerde ara").fill(ARANAN);
+  await p.waitForTimeout(600);
+  ok(`açıklama içinde de arıyor (${await sayi()})`, (await sayi()) === 1);
+}
 await p.getByLabel("Görevlerde ara").fill("");
 await p.waitForTimeout(400);
 

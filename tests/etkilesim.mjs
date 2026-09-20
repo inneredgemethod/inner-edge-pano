@@ -5,6 +5,17 @@ import { db, envYukle, girisYap } from "./oturum.mjs";
 envYukle();
 const BASE = process.env.PANO_URL ?? "http://localhost:3000";
 const ok = (n, c) => console.log(`${c ? "✓" : "✗ BASARISIZ"}  ${n}`);
+// Beklenen sayilar VERITABANINDAN geliyor, sabit degil. Tohumdaki 37 gorev
+// yazili olsaydi, toplantidan sonra gercek gorevler girilince butun paket
+// kirmiziya donerdi — testler o gun en cok lazim olacagi an ise yaramazdi.
+const _H = {
+  apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+};
+const dbSay = async (sorgu = "") =>
+  (await (await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/tasks?select=id${sorgu}`,
+    { headers: _H })).json()).length;
+
 const TEST_GOREV = `TEST etkilesim ${Date.now().toString(36)}`;
 
 // Baslamadan once temizle: bu paketler mutlak gorev sayisi kontrol ediyor.
@@ -46,7 +57,9 @@ ok("Ben seçicisi üstte", await benSecici().isVisible());
 ok("seçili kişi Kürşad", (await benSecici().inputValue()) === "Kürşad");
 
 await p.goto(`${BASE}/gorevler`, { waitUntil: "networkidle" });
-ok("37 görev veritabanından", (await p.getByText(/^\d+ görev$/).textContent()) === "37 görev");
+const toplamGorev = await dbSay();
+ok(`görev sayısı veritabanıyla aynı (${toplamGorev})`,
+   (await p.getByText(/^\d+ görev$/).textContent()) === `${toplamGorev} görev`);
 
 // Durum
 await acGorev("45 dakikalık toplantı");
@@ -70,14 +83,21 @@ ok("durum sekme değişince korundu",
 
 // Filtreler
 await p.locator('button:text-is("Sarah")').click();
-ok("kişi filtresi (Sarah 13)", (await p.getByText(/^\d+ görev$/).textContent()) === "13 görev");
+{
+  const bek = await dbSay("&owner=eq.Sarah");
+  ok(`kişi filtresi (Sarah ${bek})`,
+     (await p.getByText(/^\d+ görev$/).textContent()) === `${bek} görev`);
+}
 await p.locator('button:text-is("Herkes")').click();
 await p.getByLabel("Sadece takılan / geciken").check();
 const geciken = Number((await p.getByText(/^\d+ görev$/).textContent()).split(" ")[0]);
-ok(`geciken filtresi (${geciken})`, geciken > 0 && geciken < 37);
+ok(`geciken filtresi (${geciken}/${toplamGorev})`, geciken > 0 && geciken < toplamGorev);
 await p.getByLabel("Sadece takılan / geciken").uncheck();
 await p.locator('button:has-text("2 · Sosyal medya")').click();
-ok("faz filtresi (B 10)", (await p.getByText(/^\d+ görev$/).textContent()) === "10 görev");
+{
+  const bek = await dbSay("&phase_id=eq.B");
+  ok(`faz filtresi (B ${bek})`, (await p.getByText(/^\d+ görev$/).textContent()) === `${bek} görev`);
+}
 
 // Benim sekmesi seçili kişiyi izliyor
 await alt("Benim").click();

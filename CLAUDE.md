@@ -86,7 +86,12 @@ Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim 
 ## Test
 `npm run test:sunucu` temiz bir production sunucusu başlatır (3002), sonra:
 `npm run test:giris` · `npm run test:etkilesim` · `npm run test:kalicilik` · `npm run test:yarin` · `npm run test:ekran`.
-Toplam **11 paket, 192 kontrol** + 32 ekran görüntüsü.
+Toplam **11 paket, 199 kontrol** + 32 ekran görüntüsü.
+
+**Testler veri sayısına BAĞLI DEĞİL.** Eskiden `"37 görev"` gibi sabitler vardı; toplantıda pano
+sıfırlanıp gerçek görevler girilince bütün paket kırmızıya dönecekti — testler en çok lazım olacağı
+gün işe yaramazdı. Beklenen sayılar artık `service_role` ile veritabanından okunuyor (`dbSay`).
+Yeni test yazarken sabit sayı YAZMA.
 
 **Seçici tuzakları — yaşandı, tekrar düşme:**
 - `getByLabel("X")` GEVŞEK eşleşir. Satır eylem düğmelerinin `aria-label`'ı görev
@@ -127,6 +132,24 @@ Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; tem
   (`min-h-[2.5rem]`) yeterli.
 - **`disabled:opacity` tek değerde: 50.** Dört farklı değer vardı.
 
+## Telefonda "uygulama" olarak kullanmak (PWA)
+Yunus panoyu Android'de ana ekrana ekleyince **her açılışta şifre soruyordu**. Sebep çerez
+DEĞİLDİ (oturum çerezi httpOnly ve Max-Age 400 gün). Site "yüklenebilir uygulama" sayılmadığı
+için kısayol ayrı bir depolama kutusunda açılıyor ve oturum kayboluyordu. Gereken üç parça:
+- **`src/app/manifest.ts`** — `display: "standalone"`, 192/512 ikon, maskable dahil.
+- **`public/sw.js`** — Android/Chrome WebAPK için manifest TEK BAŞINA yetmiyor, bir service
+  worker + fetch dinleyicisi de arıyor. **Bilerek önbellek YOK:** görev panosunda bayat veri,
+  çalışmayan panodan kötüdür.
+- **`apple-mobile-web-app-capable` meta etiketi ELLE** (`layout.tsx`). Next 15 `appleWebApp.capable`
+  için modern `mobile-web-app-capable`i basıyor, iOS Safari hâlâ yalnızca apple- öneklisini tanıyor.
+
+⚠ **`manifest.webmanifest` ve `sw.js` middleware matcher'ının DIŞINDA olmalı.** İkisi de oturumdan
+önce isteniyor; matcher'a girerlerse 307 ile `/giris`'e dönüyorlar, tarayıcı JSON/JS yerine HTML
+alıyor ve kurulum sessizce başarısız oluyor. `tests/giris.mjs` bunu bekçiliyor.
+
+⚠ **Düzeltme eski kısayollara ULAŞMAZ.** Ana ekrandaki eski simge eski kimliğini koruyor;
+silinip yeniden eklenmesi gerekiyor.
+
 ## Yönetim kuralları (Faz 5 · Kontrol Noktası 2)
 - **Faz ve kişi SİLİNMEZ, arşivlenir.** `tasks.phase_id` fazlara foreign key ile bağlı; `tasks.owner`, `tasks.created_by`, `task_events.actor` kişi adını düz metin tutuyor. Silme, görevleri kırar ya da sahipsiz bırakır.
 - **Kişi adı değiştirilemez** — aynı sebep. Gerekirse arşivle + yeni kişi ekle.
@@ -160,7 +183,7 @@ Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi baz
 ### Canlı durum
 - **https://inneredgepanel.vercel.app** · eski adres **https://inner-edge-pano.vercel.app** de çalışıyor
 - Ekip şifresi: `innerteam2026` · giriş sonrası üstteki "Ben:" menüsünden kişi seçiliyor
-- **192 test geçiyor** (11 paket) · 32 ekran görüntüsü, yatay taşma 0, konsol temiz
+- **199 test geçiyor** (11 paket) · 32 ekran görüntüsü, yatay taşma 0, konsol temiz
 - Pano sağlıklı: 37 demo görev, 5 faz, 6 kişi (3'ü arşivde), 0 kişisel not
 
 ### Bu oturumda bitenler (hepsi canlıda)
@@ -183,6 +206,15 @@ Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi baz
   metninde sayfayı yatay kaydırıyordu · `TopluCubuk` çentikli telefonda alt menüye
   biniyordu · üst çubuk uzun isimde taşıyordu · beş ekranda eksik boş-durum mesajı ·
   dokunma hedefleri 40px'e çıkarıldı · `disabled:opacity` tek değerde birleşti.
+
+### 20 Eylül · telefonda uygulama + test dayanıklılığı
+- **PWA eklendi** (manifest + service worker + apple meta + ikonlar). Yunus'un "her açılışta
+  şifre soruyor" sorunu buydu. Ekip eski kısayolu silip yeniden eklemeli.
+- **Testlerdeki sabit görev sayıları kaldırıldı.** 36 → 39 görevle doğrulandı: eskiden 5 kontrol
+  kırılırdı, artık geçiyor.
+- **Ekip panoyu test etti:** bir görev eklendi, iki tohum görevi silindi. Geri yüklenmedi —
+  bilerek silinmiş veriyi geri getirmek kullanıcının kararını ezmek olur, zaten toplantıda
+  pano sıfırlanacak.
 
 ### Yarım kalan / bilinen durum
 - ~~"Panoyu Sıfırla" test edilmedi~~ → **19 Eylül'de canlıda GERÇEKTEN çalıştırıldı ve doğrulandı:**

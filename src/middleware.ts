@@ -11,7 +11,13 @@ export const config = {
   //     giriş sayfasına yönlendirilir ve giriş hiç yapılamaz.
   //   - /giris oturumsuz açılan sayfa; middleware orada Supabase istemcisi
   //     kurup auth çerezlerini temizliyor, bu da yeni kurulan oturumu bozabiliyor.
+  //   - manifest.webmanifest oturumdan ÖNCE okunuyor. Middleware'e takılınca
+  //     307 ile /giris'e dönüyordu; tarayıcı manifest yerine HTML alıp onu
+  //     yok sayıyor ve site "yüklenebilir uygulama" sayılmıyordu. iOS'ta
+  //     sonucu: ana ekrana eklenen kısayol her açılışta şifre soruyor.
+  //   - sw.js de oturumdan once isteniyor; /giris'e donerse service worker
+  //     kaydi HTML alip basarisiz oluyor ve Android WebAPK uretmiyor.
   matcher: [
-    "/((?!api/|giris|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api/|giris|manifest.webmanifest|sw.js|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
