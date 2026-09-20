@@ -1,5 +1,61 @@
 # CLAUDE.md — Inner Edge Ekip Panosu
 
+---
+
+# 🟢 PROJE DURUMU: TAMAMLANDI — BAKIM MODU
+**Son güncelleme: 20 Eylül 2026** · Bu tarihten sonra proje **aktif geliştirme almıyor.**
+
+## Ne durumda
+| | |
+|---|---|
+| **Canlı adres** | **https://inneredgepanel.vercel.app** (eski adres `inner-edge-pano.vercel.app` de çalışıyor) |
+| **Ekip şifresi** | `innerteam2026` — giriş sonrası üstteki "Ben:" menüsünden kişi seçilir |
+| **Kullanan** | Kürşad (iPhone + Mac) · Sarah (Samsung Android + Windows) · Yunus (Android + Windows) |
+| **Testler** | 11 paket, **199 kontrol** — canlıya karşı geçiyor · 32 ekran görüntüsü, yatay taşma 0 |
+| **Veritabanı** | Supabase `todolist` (Frankfurt) · 5 faz · 6 kişi (3'ü arşivde) |
+| **Depo** | `inneredgemethod/inner-edge-pano`, `main` = canlı |
+
+Uygulama **telefonda ana ekrana eklenebilir** (PWA). Kurulum adımları ve ekibe gönderilecek
+metin: aşağıdaki "Telefonda uygulama olarak kullanmak" bölümü.
+
+## Bakım modu ne demek
+- **Yeni özellik planlanmıyor.** Yalnızca (a) bozulan bir şeyin düzeltilmesi, (b) ekibin
+  isteyeceği küçük ekleme/güncelleme yapılır.
+- Her değişiklik yine **küçük kapsamlı, testli ve deploy edilmiş** olmalı — kural gevşemedi,
+  sadece iş hacmi azaldı.
+- **"Bilinen, düşük riskli, ileride bakılacak" listesine DOKUNULMAZ** (aşağıda). Bunlar bilerek
+  ertelendi; biri gerçekten sorun çıkarmadıkça elleçlenmez.
+
+## Geri dönen kişi buradan başlasın
+1. **Bu dosyayı baştan sona oku.** Özellikle: "Hesaplar" (GitHub/Vercel/Supabase ayrımı),
+   "Test" (seçici tuzakları), "20 Eylül sürümü — arayüz ve veri kuralları", "Yapma".
+2. `gh auth status` → aktif hesap **`inneredgemethod`** olmalı. Değilse `gh auth switch --user inneredgemethod`.
+   *Bu, bu projede en sık tekrarlayan tökezleme noktası — push 403 ile reddedilir.*
+3. `npm run dogrula` → panonun sağlık kontrolü. Yeşil değilse önce onu anla.
+4. Değişiklik yapacaksan: `npm run test:sunucu` (3002) → `export PANO_URL=http://localhost:3002`
+   → ilgili test paketlerini koş. Dokunduğun alanın testi yoksa önce onu yaz.
+5. Deploy: `vercel deploy --prod --yes --token=$INNER_EDGE_VERCEL_TOKEN`
+   (`vercel login`'e **dokunma**), sonra testleri **canlıya karşı** tekrarla.
+
+## Küçük bir değişiklik istenirse — en kısa yol
+```bash
+cd ~/Claude-Code-Proje/inner
+gh auth status                 # inneredgemethod aktif mi
+npm run dogrula                # pano sağlıklı mı
+npm run test:sunucu            # temiz production sunucusu (3002)
+export PANO_URL=http://localhost:3002
+# ...değişiklik + npx tsc --noEmit + npx eslint . + ilgili testler...
+vercel deploy --prod --yes --token=$INNER_EDGE_VERCEL_TOKEN
+```
+
+## Açık tek konu (ertelendi, Kürşad istedi)
+**Kişi bazlı gerçek giriş modeli.** Bugün tek paylaşılan şifre var; bunun iki sonucu:
+"kim yaptı" bilgisi doğrulanmış kimlik değil **beyan**, ve "Notlarım" gerçekten gizli değil.
+Kürşad "ileride konuşalım" dedi. Bu **ayrı bir planlama konusu** — bakım modu işi değil,
+başlanacaksa kendi kontrol noktası olarak ele alınmalı.
+
+---
+
 ## Proje nedir
 Inner Edge (trading psikolojisi bootcamp'i ve topluluğu) ekibinin ortak görev panosu. 3 kişi kullanır: **Kürşad** (satış/operasyon, sahip), **Sarah** (CEO, eğitmen, Atina'da), **Yunus** (teknik, öğrenci). İleride bootcamp öğrencileri ve kurumsal projeler için genişleyecek; şimdilik **tek öncelik: görev listesi**.
 
@@ -28,13 +84,22 @@ Bu proje **`info@inneredgemethod.io`** hesabına aittir. Kürşad'ın kişisel h
 - Mobil öncelikli: Sarah ve Yunus çoğunlukla telefondan bakacak.
 
 ## Veri modeli
-`05_veritabani_sema.sql` esas. Tohum verisi `04_gorevler_seed.json` (37 görev, 5 faz). Görev alanları: başlık, faz, hafta etiketi, sorumlu, hedef tarih, durum (Bekliyor/Yapılıyor/Yapıldı/Yapılamadı), "ne yapılacak / neden önemli / bitti sayılır" açıklamaları, notlar (kim, ne zaman, ne dedi).
+`05_veritabani_sema.sql` başlangıç noktasıydı; **güncel şema `supabase/migrations/` (0001→0011).**
+Tohum verisi `04_gorevler_seed.json` (37 görev, 5 faz) — toplantıdan sonra gerçek görevlerle
+değiştirildiği için artık bir referans değil, yalnızca biçim örneği.
+Görev alanları: başlık, faz, sorumlu, hedef tarih, durum (Bekliyor/Yapılıyor/Yapıldı/Yapılamadı),
+"ne yapılacak / neden önemli / bitti sayılır" açıklamaları, notlar (kim/ne zaman/ne dedi),
+tekrar periyodu (0009), bitiş anı `completed_at` (0011).
+⚠ **`week_label` sütunu 0008'de SİLİNDİ** — zaman grupları hedef tarihten türetiliyor.
 
 ## Yetki
 - Giriş: tek ekip şifresi (yukarıdaki "Giriş modeli"). Şifreyi bilen girer.
-  - Kadro: Kürşad · Sarah · Yunus. `Sibel`, `Emine`, `Ortak` görev **sorumlusu** olabilir ama kadroda değil.
-- Herkes her görevi görür ve değiştirebilir; her değişiklik kim tarafından yapıldığı ile loglanır.
-- Silme: sadece görevi ekleyen veya Kürşad.
+  - Kadro: Kürşad · Sarah · Yunus. `Sibel`, `Emine`, `Ortak` **arşivde** — Ayarlar › Kişiler'den
+    geri alınabilirler.
+- Herkes her görevi görür, değiştirebilir ve **silebilir**; her değişiklik kimin yaptığıyla loglanır.
+- ⚠ Eski "silme: sadece ekleyen veya Kürşad" kuralı (K6) **Faz 5'te KALDIRILDI.** Tek paylaşılan
+  hesap modelinde veritabanı seviyesinde zorlanamıyordu; arayüzde tutmak korunuyormuş
+  yanılsaması veriyordu (`0005_tek_sifreli_giris.sql` bunu açıkça yazıyor).
 
 ## Kodlama disiplini (Karpathy notlarından uyarlandı)
 - Varsayım yapma; belirsizse sor. Bir dosyayı değiştirmeden önce oku.
@@ -84,9 +149,27 @@ Pano **tek ekip şifresiyle** giriliyor. Sonra üstteki "Ben:" menüsünden kim 
 - **Vercel'e `PANO_SITE_PASSWORD`, `PANO_SUPABASE_EMAIL`, `PANO_SUPABASE_PASSWORD` de girilmeli** — yoksa canlıda giriş çalışmaz.
 
 ## Test
-`npm run test:sunucu` temiz bir production sunucusu başlatır (3002), sonra:
-`npm run test:giris` · `npm run test:etkilesim` · `npm run test:kalicilik` · `npm run test:yarin` · `npm run test:ekran`.
-Toplam **11 paket, 199 kontrol** + 32 ekran görüntüsü.
+`npm run test:sunucu` temiz bir production sunucusu başlatır (3002), sonra
+`export PANO_URL=http://localhost:3002` ve paketler. **Toplam 11 paket, 199 kontrol** + 32 ekran görüntüsü.
+
+| Paket | Kapsam | Kontrol |
+|---|---|---|
+| `test:tarih` | tarih yardımcıları, gruplama (tarayıcısız) | 21 |
+| `test:ayristirici` | toplantı notu ayrıştırıcısı (tarayıcısız) | 11 |
+| `test:giris` | şifreyle giriş, çıkış, **PWA kurulabilirliği** | 23 |
+| `test:arsiv` | arşivli kişi davranışı | 8 |
+| `test:etkilesim` | durum/not/filtre, sekmeler | 17 |
+| `test:kalicilik` | iki oturum, Realtime, kalıcılık | 10 |
+| `test:toplu` | toplu seçim ve toplu işlemler | 12 |
+| `test:paketa` | açıklamalar, toplantı notu akışı, Ayarlar | 17 |
+| `test:gorunum` | görünümler, arama, URL filtreleri | 27 |
+| `test:yonetim` | faz+kişi yönetimi, tekrar, şablon, JSON | 23 |
+| `test:yarin` | Genel Bakış bölümü, satır eylemleri, Notlarım, Geçmiş | 30 |
+| `test:ekran` | 16 ekran × 2 genişlik, yatay taşma + konsol | (32 görüntü) |
+
+Hepsi `PANO_URL` ile çalışır; canlıya karşı koşmak için `export PANO_URL=https://inneredgepanel.vercel.app`.
+**Dev sunucusunda koşma** — geliştirici rozeti tıklamaları yiyor.
+Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; temizlik satırını silme.
 
 **Testler veri sayısına BAĞLI DEĞİL.** Eskiden `"37 görev"` gibi sabitler vardı; toplantıda pano
 sıfırlanıp gerçek görevler girilince bütün paket kırmızıya dönecekti — testler en çok lazım olacağı
@@ -102,8 +185,8 @@ Yeni test yazarken sabit sayı YAZMA.
 - Sekme etiketi sayaç taşıyorsa (`Notlarım (3)`) `text-is` kırılır — `aria-label` ile seç.
 - PostgREST **sıralamasız** sorgu rastgele sırada döner. `task_events`'te `.at(-1)`
   istiyorsan `order=created_at.asc` YAZ.
-Hepsi `PANO_URL` ile çalışır. **Dev sunucusunda koşma** — geliştirici rozeti tıklamaları yiyor.
-Testler veritabanına gerçekten yazıyor ve **kendi çöplerini topluyor**; temizlik satırını silme.
+- UI'dan görev ekleyip hemen aramak yarış doğuruyor (`router.refresh()` yetişmiyor).
+  Sabit bir kurulum gerekiyorsa görevi `service_role` ile doğrudan veritabanına yaz.
 
 ## 20 Eylül sürümü — arayüz ve veri kuralları
 - **Görev satırı artık `<div>`, `<button>` DEĞİL.** İçinde eylem düğmeleri var; iç içe
@@ -150,6 +233,15 @@ alıyor ve kurulum sessizce başarısız oluyor. `tests/giris.mjs` bunu bekçili
 ⚠ **Düzeltme eski kısayollara ULAŞMAZ.** Ana ekrandaki eski simge eski kimliğini koruyor;
 silinip yeniden eklenmesi gerekiyor.
 
+### Kurulum adımları (cihaza göre farklı — karıştırma)
+| Cihaz | Kim | Adımlar |
+|---|---|---|
+| **Android** | Yunus, Sarah | Eski simgeyi sil → **Chrome**'da adresi aç → şifreyle gir → ⋮ menüsü → **"Uygulamayı yükle"** (yoksa "Ana ekrana ekle") |
+| **iPhone** | Kürşad | Eski simgeyi sil → **Safari**'de aç (Chrome DEĞİL, iOS'ta yalnızca Safari ana ekrana uygulama ekleyebiliyor) → Paylaş → **"Ana Ekrana Ekle"** |
+| **Windows / Mac** | hepsi | Chrome/Edge'de adres çubuğunun sağındaki **yükle** simgesi |
+
+Her iki platformda da kurulumdan sonra şifre **bir kez** sorulur, sonra sorulmaz.
+
 ## Yönetim kuralları (Faz 5 · Kontrol Noktası 2)
 - **Faz ve kişi SİLİNMEZ, arşivlenir.** `tasks.phase_id` fazlara foreign key ile bağlı; `tasks.owner`, `tasks.created_by`, `task_events.actor` kişi adını düz metin tutuyor. Silme, görevleri kırar ya da sahipsiz bırakır.
 - **Kişi adı değiştirilemez** — aynı sebep. Gerekirse arşivle + yeni kişi ekle.
@@ -173,20 +265,19 @@ silinip yeniden eklenmesi gerekiyor.
 - Kullanıcıya sormadan veritabanını sıfırlama veya tohum veriyi yeniden yükleme.
 - v0.1 kapsamı dışına çıkma (dashboard, öğrenci paneli, dosya yükleme → sonraki sürümler).
 
-## Tamamlandı tanımı (v0.1)
-Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi bazlı görülüyor, detay penceresinde durum ve not değişiyor, değişiklik diğer kişide yenilemeden görünüyor, telefonda rahat kullanılıyor.
+## Tamamlandı tanımı (v0.1) — KARŞILANDI
+Canlı Vercel linki var · 3 kişi tek ekip şifresiyle giriyor (magic link Faz 4'te kaldırıldı) ·
+görevler faz/kişi/tarih bazlı görülüyor · detay penceresinde durum, sorumlu, tarih, açıklama ve
+not değişiyor · değişiklik diğer kişide yenilemeden görünüyor · telefonda rahat kullanılıyor ve
+ana ekrana uygulama olarak eklenebiliyor.
 
 ---
 
-## DEVAM PROMPTU — 19 Eylül 2026 (bir sonraki oturum buradan başlasın)
+## PROJE GEÇMİŞİ — neyin neden yapıldığı
+Güncel durum ve nasıl devam edileceği en ÜSTTEKİ "PROJE DURUMU" bölümünde.
+Buradakiler kayıt amaçlı: bir karara neden öyle varıldığını arayan kişi için.
 
-### Canlı durum
-- **https://inneredgepanel.vercel.app** · eski adres **https://inner-edge-pano.vercel.app** de çalışıyor
-- Ekip şifresi: `innerteam2026` · giriş sonrası üstteki "Ben:" menüsünden kişi seçiliyor
-- **199 test geçiyor** (11 paket) · 32 ekran görüntüsü, yatay taşma 0, konsol temiz
-- Pano sağlıklı: 37 demo görev, 5 faz, 6 kişi (3'ü arşivde), 0 kişisel not
-
-### Bu oturumda bitenler (hepsi canlıda)
+### Kontrol Noktası 2 (18–19 Eylül)
 1. **Yeni alan adı** eklendi, eski korundu.
 2. **Görev satırında eylem düğmeleri**: sol ✓ (tek dokunuşla bitir/geri al), sağ 🗑 (onaylı silme),
    gövdeye dokunma = detay. TaskDetail'in onaysız silmesi iki adımlıya çevrildi.
@@ -225,8 +316,11 @@ Canlı Vercel linki var, 3 kişi magic link ile giriyor, görevler faz/kişi baz
   bitirildiğinde dolar — tanıtımda canlı göstermek için iyi bir an.
 - Demo verisi (37 görev) bilerek duruyor. Toplantıda Ayarlar → Panoyu Sıfırla ile temizlenecek.
 
-### Sonraki oturumda bakılacak (bilerek ertelendi)
-Demo arifesinde dokunulmadı, hiçbiri günlük kullanımı engellemiyor:
+### Bilinen, düşük riskli, ileride bakılacak — DÜZELTME
+Bunlar bilinçli olarak ertelendi ve **bakım modunda elleçlenmeyecek.** Hiçbiri günlük
+kullanımı engellemiyor; biri gerçekten bir soruna yol açmadıkça dokunulmaz. Dokunmaya
+karar verilirse her biri kendi testiyle ve ayrı ayrı ele alınmalı — hepsi `store.tsx`'in
+iyimser güncelleme + Realtime akışına bağlı ve toplu bir düzeltme yeni hatalar doğurur.
 - `store.tsx` › `iyimser`: iki hızlı iyimser yazmadan biri başarısız olursa diğerinin
   değişikliği de geri alınıyor.
 - `store.tsx`: her yazma kendi Realtime olayını tetikleyip `router.refresh()` ile iyimser
@@ -236,18 +330,16 @@ Demo arifesinde dokunulmadı, hiçbiri günlük kullanımı engellemiyor:
 - `FazYonetimi`: faz sırası iki ayrı `await` ile takas ediliyor, ikincisi düşerse sıra belirsiz.
 - Buton dolgu çeşitliliği (`px-2.5`/`px-3`/`px-4`) bilerek bırakıldı.
 
-### Açık konu — Kürşad istedi
-**Kişi bazlı gerçek giriş modeli.** Bugünkü tek paylaşılan şifre yüzünden (a) "kim yaptı" bilgisi
-beyandır, (b) Notlarım gerçekten gizli değil. Kürşad "evet, ileride konuşalım" dedi. Magic link'e
-dönmeden, daha hafif bir model (kişi başı şifre + httpOnly çerez, ya da Supabase'de üç ayrı hesap)
-tasarlanmalı. **Bu ayrı bir planlama konusu, tek başına bir kontrol noktası.**
+### Kişi bazlı giriş — açık konu
+Ayrıntı en üstteki "PROJE DURUMU" bölümünde. Kısaca: tek paylaşılan şifre yüzünden "kim yaptı"
+beyandır ve Notlarım gizli değildir; Kürşad ileride konuşmak istedi.
 
-### Sonraki oturumun ilk okuyacağı 3 dosya
-1. `CLAUDE.md` (bu dosya) — özellikle "20 Eylül sürümü" ve "Test" bölümleri
+### İlk okunacak 3 dosya
+1. `CLAUDE.md` (bu dosya) — "PROJE DURUMU", "Test", "20 Eylül sürümü — arayüz ve veri kuralları"
 2. `src/lib/store.tsx` — bütün veri akışı ve Realtime buradan geçiyor
-3. `supabase/migrations/` — 0010 ve 0011 en yeni şema
+3. `supabase/migrations/` — `0011_bitis_zamani.sql` en yeni şema
 
-### Toplantı metni yapıştırıldığında izlenecek yol
+### Toplantı notundan toplu görev girme (sık kullanılacak)
 1. Ayarlar → **Panoyu Sıfırla** (yedeği otomatik iner, onay için `SİL` yazılır)
 2. Ekle → **Toplantı notu** → varsayılan sorumlu = Yunus → satırları yapıştır → ekle
 3. Varsayılan sorumluyu Sarah yap → ekle → Kürşad yap → ekle
