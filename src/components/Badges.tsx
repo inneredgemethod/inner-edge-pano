@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDue } from "@/lib/data";
+import { IkonUyari } from "./Ikon";
 import { useStore } from "@/lib/store";
 import { kisiRengi, type Status } from "@/lib/types";
 
@@ -39,8 +40,11 @@ export function OwnerBadge({ owner }: { owner: string }) {
 export function DueLabel({ due, late }: { due: string; late: boolean }) {
   if (!due) return null;
   return (
-    <span className="text-xs" style={{ color: late ? "var(--c-red)" : "var(--c-mute)" }}>
-      {late ? "⚠ " : ""}
+    <span
+      className="inline-flex items-center gap-1 text-xs"
+      style={{ color: late ? "var(--c-red)" : "var(--c-mute)", fontWeight: late ? 500 : 400 }}
+    >
+      {late && <IkonUyari boyut={13} />}
       {formatDue(due)}
     </span>
   );

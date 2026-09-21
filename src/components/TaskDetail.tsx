@@ -5,6 +5,7 @@ import { formatDue, phaseOf } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { sorumluSecenekleri, STATUSES, TEKRARLAR, type Status, type Tekrar } from "@/lib/types";
 import { StatusBadge } from "./Badges";
+import { IkonTekrar } from "./Ikon";
 
 /** Durum düğmesi seçiliyken alacağı renkler — örnek panodaki .stbtns kalıbı. */
 const ON_STYLE: Record<Status, { bg: string; fg: string }> = {
@@ -73,10 +74,13 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
           {task.due ? ` · hedef ${formatDue(task.due)}` : " · tarihsiz"}
         </p>
         {task.tekrar && (
-          <p className="mt-1 text-xs" style={{ color: "var(--c-teal)" }}>
-            🔁 {TEKRARLAR.find(([d]) => d === task.tekrar)?.[1]} — &quot;Yapıldı&quot;
+          <p className="mt-1 flex items-start gap-1.5 text-xs" style={{ color: "var(--c-teal)" }}>
+            <IkonTekrar boyut={14} />
+            <span>
+            {TEKRARLAR.find(([d]) => d === task.tekrar)?.[1]} — &quot;Yapıldı&quot;
             işaretleyince bir sonraki otomatik oluşur
             {!task.due && " (hedef tarih gerekiyor)"}
+            </span>
           </p>
         )}
       </div>
@@ -157,7 +161,9 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
           <h3 className="mb-1.5 text-xs font-medium" style={{ color: "var(--c-mute)" }}>
             Durum
           </h3>
-          <div className="flex flex-wrap gap-1.5">
+          {/* 2x2 ızgara: tek sıraya sığmıyordu ve "Yapılamadı" tek başına alt
+              satıra düşüp diğer üçünden önemsizmiş gibi duruyordu. */}
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
             {STATUSES.map((s) => {
               const on = task.status === s;
               return (
@@ -166,7 +172,7 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
                   type="button"
                   onClick={() => setStatus(task.id, s)}
                   aria-pressed={on}
-                  className="rounded-lg border px-3 py-1.5 text-[13px]"
+                  className="min-h-[2.75rem] rounded-lg border px-3 py-1.5 text-[13px]"
                   style={{
                     background: on ? ON_STYLE[s].bg : "var(--c-bg3)",
                     borderColor: on ? ON_STYLE[s].fg : "var(--c-line)",

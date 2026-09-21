@@ -32,9 +32,9 @@ const BOLUMLER = [
     id: "gorev-isleme",
     baslik: "3 · Bir görevi işlemek",
     maddeler: [
-      'Soldaki **yuvarlak ✓** — tek dokunuşla "Yapıldı". Tekrar dokununca geri alınır.',
+      'Soldaki **yuvarlak onay** düğmesi — tek dokunuşla "Yapıldı". Tekrar dokununca geri alınır.',
       "**Satırın ortasına dokunun** — detay penceresi açılır: durum, sorumlu, tarih, açıklamalar, notlar.",
-      "Sağdaki **🗑** — görevi siler. Önce onay sorar; silinen geri gelmez.",
+      "Sağdaki **çöp kutusu** simgesi — görevi siler. Önce onay sorar; silinen geri gelmez.",
       'Detaydaki dört durum: **Bekliyor · Yapılıyor · Yapıldı · Yapılamadı**. "Yapılamadı" utanılacak bir şey değil — takıldığınız yeri görünür kılar.',
       "**Not ekleyin.** Görev detayındaki not kutusu, o işin hikâyesini tutar: kim, ne zaman, ne dedi.",
     ],
@@ -45,7 +45,7 @@ const BOLUMLER = [
     maddeler: [
       "**Liste** — tarihe göre gruplu: Gecikmiş, Bu hafta, Gelecek hafta, Sonrası.",
       "**Hafta** — tek haftanın gün gün dökümü.",
-      "**Takvim** — aylık takvim; bitmiş görevler ✓ ve üstü çizili görünür.",
+      "**Takvim** — aylık takvim; bitmiş görevler onay işareti ve üstü çizili görünür.",
       "**Geçmiş** — tamamlanan işler, bitirildikleri güne göre. **Neyi ne zaman yaptık** sorusunun cevabı burada.",
       "Üstteki arama kutusu başlık, açıklama ve notların içinde arar. Kişi ve faz filtreleri de var; filtrelediğiniz ekranın adresini kopyalayıp birine gönderebilirsiniz.",
       '**Seç** düğmesi toplu işlem açar: birden çok görevin sorumlusunu/tarihini bir kerede değiştirin veya hepsini silin.',

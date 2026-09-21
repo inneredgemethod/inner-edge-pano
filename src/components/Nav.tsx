@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useStore, type Theme } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { kisiRengi, panoyaGirenler } from "@/lib/types";
+import { IkonArti, IkonAyar, IkonGenel, IkonListe, IkonSoru, IkonYildiz } from "./Ikon";
 
 const TABS = [
-  { href: "/", label: "Genel", icon: "◎" },
-  { href: "/gorevler", label: "Görevler", icon: "☰" },
-  { href: "/benim", label: "Benim", icon: "★" },
-  { href: "/ekle", label: "Ekle", icon: "＋" },
+  { href: "/", label: "Genel", Ikon: IkonGenel },
+  { href: "/gorevler", label: "Görevler", Ikon: IkonListe },
+  { href: "/benim", label: "Benim", Ikon: IkonYildiz },
+  { href: "/ekle", label: "Ekle", Ikon: IkonArti },
 ] as const;
 
 function useActive() {
@@ -19,7 +20,7 @@ function useActive() {
 
 /** Masaüstü: üstte tek satır navbar. Mobilde gizli. */
 export function TopBar() {
-  const { kadro, me, setMe, theme, setTheme } = useStore();
+  const { kadro, me, setMe } = useStore();
   const isActive = useActive();
 
   return (
@@ -75,51 +76,29 @@ export function TopBar() {
           {/* Alt menüye 5. sekme EKLENMEDİ: grid-cols-4'ü bozmak telefonda
               dört sekmeyi de daraltır ve 4.25rem yüksekliğe bağlı üç ayrı yer
               (globals.css body padding, TopluCubuk'un alt konumu) kırılır. */}
+          {/* Tema ve Çıkış AYARLAR'A taşındı: ikisi de günlük kullanılmıyor
+              ama 390px'te çubuğun yarısını yiyor ve uzun bir isimde satır
+              ikiye bölünüyordu. Üstte günde onlarca kez lazım olan iki şey
+              kaldı: kim olduğun ve yardım. */}
           <Link
             href="/nasil-kullanilir"
             aria-label="Nasıl kullanılır"
             title="Nasıl kullanılır"
-            className="grid min-h-[2.5rem] place-items-center rounded-lg border px-2.5 text-sm"
+            className="grid size-11 place-items-center rounded-lg border"
             style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
           >
-            ?
+            <IkonSoru boyut={19} />
           </Link>
 
           <Link
             href="/ayarlar"
             aria-label="Ayarlar"
             title="Ayarlar"
-            className="grid min-h-[2.5rem] place-items-center rounded-lg border px-2.5 text-sm"
+            className="grid size-11 place-items-center rounded-lg border"
             style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
           >
-            ⚙
+            <IkonAyar boyut={19} />
           </Link>
-
-          <form action="/cikis" method="post">
-            <button
-              type="submit"
-              className="min-h-[2.5rem] rounded-lg border px-2.5 py-1 text-xs"
-              style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
-            >
-              Çıkış
-            </button>
-          </form>
-
-          <select
-            value={theme}
-            onChange={(e) => setTheme(e.target.value as Theme)}
-            aria-label="Tema"
-            className="rounded-lg border px-2 py-1 text-sm"
-            style={{
-              background: "var(--c-bg2)",
-              borderColor: "var(--c-line)",
-              color: "var(--c-ink)",
-            }}
-          >
-            <option value="dark">Koyu</option>
-            <option value="light">Açık</option>
-            <option value="system">Sistem</option>
-          </select>
         </div>
       </div>
     </header>
@@ -150,9 +129,7 @@ export function BottomNav() {
             className="flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 text-[11px]"
             style={{ color: on ? "var(--c-teal)" : "var(--c-mute)" }}
           >
-            <span aria-hidden className="text-base leading-none">
-              {t.icon}
-            </span>
+            <t.Ikon boyut={19} />
             {t.label}
           </Link>
         );

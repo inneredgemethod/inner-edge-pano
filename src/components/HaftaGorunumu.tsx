@@ -74,6 +74,36 @@ export function HaftaGorunumu({
         {gunler.map((g) => {
           const gorevler = gunun(g);
           const bugunMu = g === today;
+
+          // Boş gün TEK SATIR. Eskiden dolu gün kadar yer alıp içine tire
+          // koyuyordu; tipik bir haftada yedi günün beşi boş olduğu için
+          // ekranın çoğu hiçbir şey söylemeyen kartlarla doluyordu.
+          if (gorevler.length === 0) {
+            return (
+              // `<section>` + `<h3>` KALIYOR: yapı dolu günle aynı olsun ki
+              // hem anlamsal olarak her gün bir bölüm kalsın hem testler
+              // günleri tek seçiciyle sayabilsin. Değişen sadece yükseklik.
+              <section
+                key={g}
+                className="flex items-center gap-2 rounded-lg border px-3 py-2 md:flex-col md:items-start md:gap-0.5"
+                style={{
+                  borderColor: bugunMu ? "var(--c-teal)" : "transparent",
+                  background: "transparent",
+                }}
+              >
+                <h3
+                  className="flex-1 text-xs font-medium"
+                  style={{ color: bugunMu ? "var(--c-teal)" : "var(--c-mute)" }}
+                >
+                  {gunAdi(g)} {formatDue(g)}
+                </h3>
+                <span className="text-xs" style={{ color: "var(--c-mute)", opacity: 0.65 }}>
+                  boş
+                </span>
+              </section>
+            );
+          }
+
           return (
             <section
               key={g}
@@ -91,12 +121,7 @@ export function HaftaGorunumu({
                 {gorevler.length > 0 && ` · ${gorevler.length}`}
               </h3>
 
-              {gorevler.length === 0 ? (
-                <p className="text-xs" style={{ color: "var(--c-mute)" }}>
-                  —
-                </p>
-              ) : (
-                gorevler.map((t) => (
+              {gorevler.map((t) => (
                   <button
                     key={t.id}
                     type="button"
@@ -118,8 +143,7 @@ export function HaftaGorunumu({
                       <span style={{ color: "var(--c-mute)" }}>{t.owner}</span>
                     </span>
                   </button>
-                ))
-              )}
+              ))}
             </section>
           );
         })}

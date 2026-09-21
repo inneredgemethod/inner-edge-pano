@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AcikGorevlerim } from "@/components/AcikGorevlerim";
 import { BuHaftaKarti } from "@/components/BuHaftaKarti";
+import { IkonSoru } from "@/components/Ikon";
 import { PhaseStrip } from "@/components/PhaseStrip";
 import { currentPhase, overview } from "@/lib/data";
 import { useStore } from "@/lib/store";
@@ -30,7 +31,7 @@ export default function GenelBakis() {
         className="mb-3 flex items-start gap-2 rounded-lg border px-3.5 py-2.5 text-sm"
         style={{ background: "var(--c-bg2)", borderColor: "var(--c-teal)", color: "var(--c-teal)" }}
       >
-        <span aria-hidden className="shrink-0">❓</span>
+        <IkonSoru boyut={17} />
         Panoyu ilk kez mi kullanıyorsun? → Nasıl kullanılır
       </Link>
 

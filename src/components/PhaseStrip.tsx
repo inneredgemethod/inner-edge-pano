@@ -20,7 +20,10 @@ export function PhaseStrip({
   const { tasks, phases } = useStore();
 
   return (
-    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+    // Sağdaki solma, şeridin kaydığını gösteren tek ipucu: kaydırma çubuğu
+    // gizli ve kesilen kart tek başına "devamı var" demiyordu.
+    <div className="relative -mx-4">
+      <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1">
       <button
         type="button"
         onClick={() => onSelect(null)}
@@ -70,6 +73,12 @@ export function PhaseStrip({
           </button>
         );
       })}
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-10"
+        style={{ background: "linear-gradient(to right, transparent, var(--c-bg))" }}
+      />
     </div>
   );
 }

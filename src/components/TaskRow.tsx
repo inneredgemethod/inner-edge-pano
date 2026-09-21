@@ -5,6 +5,7 @@ import { isLate } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import type { Task } from "@/lib/types";
 import { DueLabel, OwnerBadge, StatusBadge } from "./Badges";
+import { IkonCop, IkonNot, IkonOnay, IkonSagOk } from "./Ikon";
 import { OnayDialog } from "./OnayDialog";
 
 /**
@@ -37,14 +38,20 @@ export function TaskRow({
 
   const govde = (
     <span className="min-w-0 flex-1">
-      <span className="block text-[15px] font-medium">{task.title}</span>
+      <span className="block text-base leading-snug font-semibold">{task.title}</span>
       <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
         <OwnerBadge owner={task.owner} />
         <DueLabel due={task.due} late={late} />
         <StatusBadge status={task.status} />
         {lastNote && (
-          <span className="truncate text-xs" style={{ color: "var(--c-mute)" }}>
-            💬 {lastNote.actor}: {lastNote.body}
+          <span
+            className="inline-flex min-w-0 items-center gap-1 truncate text-xs"
+            style={{ color: "var(--c-mute)" }}
+          >
+            <IkonNot boyut={13} />
+            <span className="truncate">
+              {lastNote.actor}: {lastNote.body}
+            </span>
           </span>
         )}
       </span>
@@ -103,7 +110,7 @@ export function TaskRow({
           background: bitti ? "color-mix(in srgb, var(--c-green) 18%, transparent)" : "transparent",
         }}
       >
-        ✓
+        <IkonOnay boyut={18} />
       </button>
 
       <button
@@ -112,8 +119,8 @@ export function TaskRow({
         className="flex min-h-[2.5rem] min-w-0 flex-1 items-center gap-2 px-1.5 py-1 text-left"
       >
         {govde}
-        <span aria-hidden className="shrink-0 text-base" style={{ color: "var(--c-mute)" }}>
-          ›
+        <span className="shrink-0" style={{ color: "var(--c-mute)" }}>
+          <IkonSagOk boyut={17} />
         </span>
       </button>
 
@@ -125,7 +132,7 @@ export function TaskRow({
         className="grid size-10 shrink-0 place-items-center rounded-lg border text-sm leading-none"
         style={{ borderColor: "var(--c-line)", color: "var(--c-red)" }}
       >
-        🗑
+        <IkonCop boyut={17} />
       </button>
 
       {/* Yalnızca açıkken basılıyor. Sürekli basılsaydı her satır başlığı

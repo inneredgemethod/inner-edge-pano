@@ -6,6 +6,7 @@ import { currentPhase, formatDue, gunEkle } from "@/lib/data";
 import { SABLONLAR } from "@/lib/sablonlar";
 import { useStore } from "@/lib/store";
 import { aktifFazlar, sorumluOlabilir } from "@/lib/types";
+import { IkonKisi, IkonTakvim, IkonUyari } from "@/components/Ikon";
 
 /**
  * Şablondan görev üretme (2.3). Önizleme + toplu ekleme deseni
@@ -118,12 +119,13 @@ export function Sablon() {
           >
             <div className="text-sm font-medium">{s.title}</div>
             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs" style={{ color: "var(--c-mute)" }}>
-              <span>👤 {s.owner || aktifKadro[0]}</span>
-              <span>📅 {formatDue(s.due)}</span>
+              <span className="inline-flex items-center gap-1"><IkonKisi boyut={13} />{s.owner || aktifKadro[0]}</span>
+              <span className="inline-flex items-center gap-1"><IkonTakvim boyut={13} />{formatDue(s.due)}</span>
             </div>
             {s.uyari && (
-              <div className="mt-1 text-xs" style={{ color: "var(--c-amber)" }}>
-                ⚠ {s.uyari} — {aktifKadro[0]} atanacak
+              <div className="mt-1 flex items-start gap-1 text-xs" style={{ color: "var(--c-amber)" }}>
+                <IkonUyari boyut={13} />
+                <span>{s.uyari} — {aktifKadro[0]} atanacak</span>
               </div>
             )}
           </li>
@@ -145,8 +147,9 @@ export function Sablon() {
                 <td className="py-1.5 pr-2">
                   {s.title}
                   {s.uyari && (
-                    <span className="block text-xs" style={{ color: "var(--c-amber)" }}>
-                      ⚠ {s.uyari} — {aktifKadro[0]} atanacak
+                    <span className="flex items-start gap-1 text-xs" style={{ color: "var(--c-amber)" }}>
+                      <IkonUyari boyut={13} />
+                      <span>{s.uyari} — {aktifKadro[0]} atanacak</span>
                     </span>
                   )}
                 </td>

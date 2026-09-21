@@ -6,6 +6,7 @@ import { currentPhase, formatDue } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { toplantiAyristir } from "@/lib/toplanti";
 import { aktifFazlar, sorumluOlabilir } from "@/lib/types";
+import { IkonKisi, IkonKlasor, IkonTakvim, IkonUyari } from "@/components/Ikon";
 
 const ORNEK = `Sarah kurumsal paket taslağını okusun @Sarah #C !25.09
 - Yunus içerik envanterini çıkarsın @Yunus #2
@@ -187,13 +188,14 @@ export function ToplantiNotu() {
                     {bos ? <i style={{ color: "var(--c-mute)" }}>(başlık yok)</i> : s.title}
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs" style={{ color: "var(--c-mute)" }}>
-                    <span>👤 {sorumlusu(s)}</span>
-                    <span>📁 {faz?.n ?? "—"}</span>
-                    <span>📅 {due ? formatDue(due) : "—"}</span>
+                    <span className="inline-flex items-center gap-1"><IkonKisi boyut={13} />{sorumlusu(s)}</span>
+                    <span className="inline-flex min-w-0 items-center gap-1"><IkonKlasor boyut={13} /><span className="truncate">{faz?.n ?? "—"}</span></span>
+                    <span className="inline-flex items-center gap-1"><IkonTakvim boyut={13} />{due ? formatDue(due) : "—"}</span>
                   </div>
                   {s.uyarilar.map((u, i) => (
-                    <div key={i} className="mt-1 text-xs" style={{ color: "var(--c-amber)" }}>
-                      ⚠ {u}
+                    <div key={i} className="mt-1 flex items-start gap-1 text-xs" style={{ color: "var(--c-amber)" }}>
+                      <IkonUyari boyut={13} />
+                      <span>{u}</span>
                     </div>
                   ))}
                 </li>
@@ -225,8 +227,9 @@ export function ToplantiNotu() {
                       <td className="py-1.5 pr-2">
                         {bos ? <i style={{ color: "var(--c-mute)" }}>(başlık yok)</i> : s.title}
                         {s.uyarilar.map((u, i) => (
-                          <span key={i} className="block text-xs" style={{ color: "var(--c-amber)" }}>
-                            ⚠ {u}
+                          <span key={i} className="flex items-start gap-1 text-xs" style={{ color: "var(--c-amber)" }}>
+                            <IkonUyari boyut={13} />
+                            <span>{u}</span>
                           </span>
                         ))}
                       </td>

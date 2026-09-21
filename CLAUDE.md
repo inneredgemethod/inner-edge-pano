@@ -3,7 +3,7 @@
 ---
 
 # 🟢 PROJE DURUMU: TAMAMLANDI — BAKIM MODU
-**Son güncelleme: 20 Eylül 2026** · Bu tarihten sonra proje **aktif geliştirme almıyor.**
+**Son güncelleme: 21 Eylül 2026** · Bu tarihten sonra proje **aktif geliştirme almıyor.**
 
 ## Ne durumda
 | | |
@@ -215,6 +215,29 @@ Yeni test yazarken sabit sayı YAZMA.
   (`min-h-[2.5rem]`) yeterli.
 - **`disabled:opacity` tek değerde: 50.** Dört farklı değer vardı.
 
+## Arayüz kuralları (21 Eylül tasarım turu)
+Tasarım incelemesi kanvası: https://claude.ai/artifact/GxuBCdqdxzpD2XS5riFNsV
+(renk paleti, tipografi ölçeği, düğme dili, yedi bulgu ve önce/sonra ekranları).
+
+- **İKON SETİ `src/components/Ikon.tsx` — EMOJİ KULLANMA.** Ekip karışık cihazda
+  (Kürşad iPhone, Sarah ve Yunus Android); aynı emoji her platformda başka çiziliyor,
+  kimi renkli, metinle hizasız. Yeni bir ikon gerekirse buraya ekle: 24×24 viewBox,
+  `currentColor`, `strokeWidth 1.8`. Hepsi `aria-hidden` — anlam ya yanındaki metinde
+  ya düğmenin `aria-label`'ında.
+- **Görev başlığı 16 px / 600 / `leading-snug`.** Eskiden 15/500'dü ve meta satırından
+  (12–13 px) ayrılmıyordu.
+- **Ayarlar'da faz kartı: ad ve dönem tam genişlik, eylemler ALT SATIRDA.** Dördü sağda
+  yan yanayken 390px'te ada 107 px kalıyor ve uzun adlar üç satıra bölünüyordu.
+- **Hafta görünümünde boş gün TEK SATIR** ama yine `<section>` + `<h3>`: yapı dolu günle
+  aynı kalsın ki testler günleri tek seçiciyle sayabilsin.
+- **Durum düğmeleri 2×2 ızgara** (`sm:grid-cols-4`). Tek sıraya sığmıyor, "Yapılamadı"
+  tek başına alta düşüyordu.
+- **Üst çubukta yalnızca üç şey var: "Ben" seçici, yardım, ayarlar.** Tema ve Çıkış
+  **Ayarlar'a taşındı** (Görünüm / Oturum bölümleri) — ikisi de günlük kullanılmıyor ama
+  telefonda çubuğun yarısını yiyordu. `tests/giris.mjs` çıkışı Ayarlar'dan tıklıyor.
+- **Faz şeridinin sağında solma var**: kaydırma çubuğu gizli, kesilen kart tek başına
+  "devamı var" demiyordu.
+
 ## Telefonda "uygulama" olarak kullanmak (PWA)
 Yunus panoyu Android'de ana ekrana ekleyince **her açılışta şifre soruyordu**. Sebep çerez
 DEĞİLDİ (oturum çerezi httpOnly ve Max-Age 400 gün). Site "yüklenebilir uygulama" sayılmadığı
@@ -297,6 +320,12 @@ Buradakiler kayıt amaçlı: bir karara neden öyle varıldığını arayan kiş
   metninde sayfayı yatay kaydırıyordu · `TopluCubuk` çentikli telefonda alt menüye
   biniyordu · üst çubuk uzun isimde taşıyordu · beş ekranda eksik boş-durum mesajı ·
   dokunma hedefleri 40px'e çıkarıldı · `disabled:opacity` tek değerde birleşti.
+
+### 21 Eylül · tasarım turu (son)
+Tasarım incelemesindeki yedi bulgunun **hepsi uygulandı**: emoji→SVG ikon seti,
+faz kartı düzeni, hafta görünümünde boş günler, üst çubuk sadeleştirme, durum
+düğmeleri 2×2, tipografi ölçeği, faz şeridi kaydırma ipucu. Ayrıntı ve gerekçeler
+yukarıdaki "Arayüz kuralları" bölümünde.
 
 ### 20 Eylül · telefonda uygulama + test dayanıklılığı
 - **PWA eklendi** (manifest + service worker + apple meta + ikonlar). Yunus'un "her açılışta

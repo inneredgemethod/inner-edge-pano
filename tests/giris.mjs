@@ -97,6 +97,8 @@ ok("kişi seçimi hatırlandı", (await p2.locator("header select").first().inpu
 await p2.close();
 
 // 7) Çıkış
+// Cikis ust cubuktan AYARLAR'a tasindi (tasarim bulgusu 4).
+await p.goto(`${BASE}/ayarlar`, { waitUntil: "networkidle" });
 await p.locator('form[action="/cikis"] button').click();
 await p.waitForURL("**/giris");
 ok("çıkış -> /giris", new URL(p.url()).pathname === "/giris");

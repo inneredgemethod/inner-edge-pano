@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { gorevleriDisaAktar, gorevleriIceAktar, type AktarimDosyasi } from "@/lib/supabase/yaz";
 import { aktifFazlar, sorumluOlabilir } from "@/lib/types";
+import { IkonUyari } from "./Ikon";
 
 type Onizleme = {
   dosya: AktarimDosyasi;
@@ -89,15 +90,17 @@ export function Aktarim() {
             <b>{onizleme.dosya.tasks.length} görev</b> eklenecek.
           </p>
           {onizleme.bilinmeyenFaz.length > 0 && (
-            <p className="mt-1.5 text-xs" style={{ color: "var(--c-red)" }}>
-              ⚠ Tanınmayan faz: {onizleme.bilinmeyenFaz.join(", ")} — bu görevler eklenemez,
-              önce fazı oluştur.
+            <p className="mt-1.5 flex items-start gap-1 text-xs" style={{ color: "var(--c-red)" }}>
+              <IkonUyari boyut={13} />
+              <span>Tanınmayan faz: {onizleme.bilinmeyenFaz.join(", ")} — bu görevler eklenemez,
+              önce fazı oluştur.</span>
             </p>
           )}
           {onizleme.bilinmeyenSorumlu.length > 0 && (
-            <p className="mt-1.5 text-xs" style={{ color: "var(--c-amber)" }}>
-              ⚠ Kadroda olmayan sorumlu: {onizleme.bilinmeyenSorumlu.join(", ")} — görevler yine
-              eklenir, sorumlu adı olduğu gibi kalır.
+            <p className="mt-1.5 flex items-start gap-1 text-xs" style={{ color: "var(--c-amber)" }}>
+              <IkonUyari boyut={13} />
+              <span>Kadroda olmayan sorumlu: {onizleme.bilinmeyenSorumlu.join(", ")} — görevler yine
+              eklenir, sorumlu adı olduğu gibi kalır.</span>
             </p>
           )}
 

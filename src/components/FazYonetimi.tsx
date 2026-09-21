@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { fazIdTuret } from "@/lib/supabase/yaz";
 import type { Phase } from "@/lib/types";
+import { IkonArsiv, IkonAsagi, IkonKalem, IkonYukari } from "./Ikon";
 
 /**
  * Faz yönetimi (2.1). Silme YOK, arşiv var: `tasks.phase_id` fazlara foreign
@@ -113,50 +114,55 @@ export function FazYonetimi() {
               </div>
             </div>
           ) : (
-            <div className="flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">{p.n}</div>
-                <div className="text-xs" style={{ color: "var(--c-mute)" }}>
+            /* Ad ve dönem TAM GENİŞLİK, eylemler alt satırda. Dördü sağda
+               yan yanayken 390px'te ada 107px kalıyor ve uzun faz adları üç
+               satıra bölünüyordu. */
+            <div>
+              <div className="min-w-0">
+                <div className="text-[15px] font-semibold">{p.n}</div>
+                <div className="mt-0.5 text-xs" style={{ color: "var(--c-mute)" }}>
                   {p.d || "dönem yok"} · {gorevSayisi(p.id)} görev
                 </div>
               </div>
-              <div className="flex shrink-0 gap-1">
+              <div className="mt-2.5 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => siraDegistir(p, -1)}
                   disabled={i === 0 || calisiyor}
                   aria-label={`${p.n} yukarı`}
-                  className="min-h-[2.5rem] min-w-[2.25rem] rounded border px-2 text-xs disabled:opacity-50"
-                  style={{ borderColor: "var(--c-line)" }}
+                  className="grid size-11 place-items-center rounded-lg border disabled:opacity-50"
+                  style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
                 >
-                  ↑
+                  <IkonYukari boyut={17} />
                 </button>
                 <button
                   type="button"
                   onClick={() => siraDegistir(p, 1)}
                   disabled={i === aktif.length - 1 || calisiyor}
                   aria-label={`${p.n} aşağı`}
-                  className="min-h-[2.5rem] min-w-[2.25rem] rounded border px-2 text-xs disabled:opacity-50"
-                  style={{ borderColor: "var(--c-line)" }}
+                  className="grid size-11 place-items-center rounded-lg border disabled:opacity-50"
+                  style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
                 >
-                  ↓
+                  <IkonAsagi boyut={17} />
                 </button>
                 <button
                   type="button"
                   onClick={() => duzenlemeyiAc(p)}
                   aria-label={`${p.n} düzenle`}
-                  className="rounded border px-2 py-1 text-xs"
-                  style={{ borderColor: "var(--c-line)" }}
+                  className="ml-auto flex min-h-[2.75rem] items-center gap-1.5 rounded-lg border px-3 text-[13px]"
+                  style={{ borderColor: "var(--c-line)", color: "var(--c-ink)" }}
                 >
+                  <IkonKalem boyut={15} />
                   Düzenle
                 </button>
                 <button
                   type="button"
                   onClick={() => fazGuncelle(p.id, { arsiv: true })}
                   aria-label={`${p.n} arşivle`}
-                  className="rounded border px-2 py-1 text-xs"
+                  className="flex min-h-[2.75rem] items-center gap-1.5 rounded-lg border px-3 text-[13px]"
                   style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
                 >
+                  <IkonArsiv boyut={15} />
                   Arşivle
                 </button>
               </div>
@@ -180,7 +186,7 @@ export function FazYonetimi() {
                 type="button"
                 onClick={() => fazGuncelle(p.id, { arsiv: false })}
                 aria-label={`${p.n} arşivden geri al`}
-                className="shrink-0 rounded border px-2 py-1 text-xs"
+                className="min-h-[2.5rem] shrink-0 rounded-lg border px-3 text-xs"
                 style={{ borderColor: "var(--c-teal)", color: "var(--c-teal)" }}
               >
                 Geri al

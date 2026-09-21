@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useStore } from "@/lib/store";
+import { IkonCop } from "./Ikon";
 import { OnayDialog } from "./OnayDialog";
 
 function tarihYaz(iso: string): string {
@@ -95,7 +96,7 @@ export function Notlarim() {
                 className="grid size-10 shrink-0 place-items-center rounded-lg border text-sm leading-none"
                 style={{ borderColor: "var(--c-line)", color: "var(--c-red)" }}
               >
-                🗑
+                <IkonCop boyut={17} />
               </button>
             </li>
           ))}

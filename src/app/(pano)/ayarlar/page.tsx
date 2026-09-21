@@ -5,13 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { Aktarim } from "@/components/Aktarim";
 import { FazYonetimi } from "@/components/FazYonetimi";
 import { KisiYonetimi } from "@/components/KisiYonetimi";
-import { useStore } from "@/lib/store";
+import { useStore, type Theme } from "@/lib/store";
+import { IkonCikis } from "@/components/Ikon";
 import { panoyuSifirla, yedekIndir } from "@/lib/supabase/yaz";
 
 const ONAY_KELIMESI = "SİL";
 
 export default function Ayarlar() {
-  const { tasks, phases, kadro } = useStore();
+  const { tasks, phases, kadro, me, theme, setTheme } = useStore();
   const router = useRouter();
   const [durum, setDurum] = useState<string | null>(null);
   const [onayMetni, setOnayMetni] = useState("");
@@ -50,7 +51,59 @@ export default function Ayarlar() {
 
   return (
     <>
-      <h1 className="mb-4 text-base font-semibold">Ayarlar</h1>
+      <h1 className="mb-4 text-lg font-semibold">Ayarlar</h1>
+
+      {/* Tema ve Çıkış üst çubuktan BURAYA taşındı: ikisi de günde bir kez
+          bile kullanılmıyor ama telefonda çubuğun yarısını yiyordu. */}
+      <section className="mb-3 rounded-lg border p-4" style={kutu}>
+        <h2 className="text-sm font-semibold">Görünüm</h2>
+        <p className="mt-1 mb-3 text-[13px]" style={{ color: "var(--c-mute)" }}>
+          Koyu tema varsayılan. &quot;Sistem&quot; telefonunun gece/gündüz ayarını izler.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {([
+            ["dark", "Koyu"],
+            ["light", "Açık"],
+            ["system", "Sistem"],
+          ] as const).map(([deger, etiket]) => {
+            const on = theme === deger;
+            return (
+              <button
+                key={deger}
+                type="button"
+                onClick={() => setTheme(deger as Theme)}
+                aria-pressed={on}
+                className="min-h-[2.75rem] rounded-lg border px-4 text-sm"
+                style={{
+                  borderColor: on ? "var(--c-teal)" : "var(--c-line)",
+                  color: on ? "var(--c-teal)" : "var(--c-mute)",
+                  background: on ? "var(--c-bg3)" : "transparent",
+                }}
+              >
+                {etiket}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mb-3 rounded-lg border p-4" style={kutu}>
+        <h2 className="text-sm font-semibold">Oturum</h2>
+        <p className="mt-1 mb-3 text-[13px]" style={{ color: "var(--c-mute)" }}>
+          Şu an <b style={{ color: "var(--c-ink)" }}>{me}</b> olarak kullanıyorsun.
+          Çıkınca panoya girmek için ekip şifresi yeniden istenir.
+        </p>
+        <form action="/cikis" method="post">
+          <button
+            type="submit"
+            className="flex min-h-[2.75rem] items-center gap-2 rounded-lg border px-4 text-sm"
+            style={{ borderColor: "var(--c-line)", color: "var(--c-mute)" }}
+          >
+            <IkonCikis boyut={16} />
+            Çıkış yap
+          </button>
+        </form>
+      </section>
 
       <section className="mb-3 rounded-lg border p-4" style={kutu}>
         <h2 className="text-sm font-semibold">Panoda ne var</h2>
